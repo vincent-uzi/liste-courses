@@ -64,6 +64,17 @@
     }
     .btn-ghost:active { background: rgba(255,255,255,0.3); }
 
+    /* ── Real-time dot ── */
+    #rt-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    #rt-dot.connected { background: #86efac; }
+    #rt-dot.error     { background: #fca5a5; }
+
     /* ── Views ── */
     .view { padding: 20px 16px; }
     .hidden { display: none !important; }
@@ -246,6 +257,21 @@
     .item.done .item-name { text-decoration: line-through; color: var(--muted); }
     .item-author { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
 
+    /* ── Loading spinner ── */
+    .loading {
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .spinner {
+      width: 26px; height: 26px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* ── Empty state ── */
     .empty {
       text-align: center;
@@ -254,6 +280,17 @@
     }
     .empty svg { margin-bottom: 14px; opacity: 0.25; display: block; margin-left: auto; margin-right: auto; }
     .empty p { font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── Error banner ── */
+    .error-banner {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
   </style>
 </head>
 <body>
@@ -270,7 +307,7 @@
         </svg>
       </div>
       <h1>Liste de courses</h1>
-      <p>Partagée entre tous sur cet appareil</p>
+      <p>Partagée en temps réel sur tous les appareils</p>
     </div>
 
     <div class="card">
@@ -293,6 +330,7 @@
   <header class="app-header">
     <h1>Liste de courses</h1>
     <div class="header-right">
+      <div id="rt-dot" title="Connexion temps réel"></div>
       <span class="chip" id="user-chip"></span>
       <button class="btn-ghost" id="logout-btn">Changer</button>
     </div>
@@ -331,20 +369,26 @@
   </div>
 </div>
 
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
 
+// ── Supabase client
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://epsocrlmmkodlidbtdpz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwc29jcmxtbWtvZGxpZGJ0ZHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDk4NDgsImV4cCI6MjA5MTcyNTg0OH0.UL5ZR7fVb7BbizL6zfKklmXqQFO85tJ3FyL6NxzJzcs'
+);
+
+// ── State
 const K_USERS = 'grocery:users';
-const K_ITEMS = 'grocery:items';
-
 let currentUser = null;
-let activeTab    = 'add';
+let activeTab   = 'add';
 
-// ── Storage helpers
+// ── Helpers
 function getUsers() { return JSON.parse(localStorage.getItem(K_USERS) || '[]'); }
 function setUsers(u) { localStorage.setItem(K_USERS, JSON.stringify(u)); }
-function getItems() { return JSON.parse(localStorage.getItem(K_ITEMS) || '[]'); }
-function setItems(i) { localStorage.setItem(K_ITEMS, JSON.stringify(i)); }
 
 function esc(str) {
   const d = document.createElement('div');
@@ -352,7 +396,48 @@ function esc(str) {
   return d.innerHTML;
 }
 
-// ── Home: render user list
+// ── Supabase queries
+async function fetchItems() {
+  const { data, error } = await db
+    .from('items')
+    .select('*')
+    .order('cree_le', { ascending: false });
+  if (error) { console.error('Supabase fetch error:', error); return null; }
+  return data;
+}
+
+async function insertItem(texte) {
+  const { error } = await db
+    .from('items')
+    .insert({ texte, auteur: currentUser, coche: false });
+  if (error) { console.error('Supabase insert error:', error); return false; }
+  return true;
+}
+
+async function updateCoche(id, coche) {
+  const { error } = await db
+    .from('items')
+    .update({ coche })
+    .eq('id', id);
+  if (error) { console.error('Supabase update error:', error); return false; }
+  return true;
+}
+
+// ── Real-time subscription
+function setupRealtime() {
+  const dot = document.getElementById('rt-dot');
+  db.channel('items-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => {
+      if (!currentUser) return;
+      if (activeTab === 'add')  renderMyItems();
+      else                      renderAllItems();
+    })
+    .subscribe(status => {
+      dot.className = status === 'SUBSCRIBED' ? 'connected' : status === 'CHANNEL_ERROR' ? 'error' : '';
+    });
+}
+
+// ── Home
 function renderHome() {
   const users = getUsers();
   const container = document.getElementById('user-list');
@@ -376,7 +461,6 @@ function createUser() {
   const name  = input.value.trim();
   if (!name) { input.focus(); return; }
   input.value = '';
-
   const users = getUsers();
   if (!users.includes(name)) { users.push(name); setUsers(users); }
   login(name);
@@ -418,37 +502,87 @@ function switchTab(tab) {
 }
 
 // ── Add item
-function addItem() {
+async function addItem() {
   const input = document.getElementById('item-input');
-  const text  = input.value.trim();
-  if (!text) { input.focus(); return; }
+  const texte = input.value.trim();
+  if (!texte) { input.focus(); return; }
+
+  // Disable button while inserting
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true;
   input.value = '';
+
+  const ok = await insertItem(texte);
+  btn.disabled = false;
   input.focus();
 
-  const items = getItems();
-  items.unshift({ id: Date.now(), text, by: currentUser, done: false });
-  setItems(items);
-  renderMyItems();
+  if (ok) renderMyItems();
+  else showError('my-items', 'Impossible d\'ajouter l\'article. Vérifiez votre connexion.');
 }
 
 document.getElementById('add-btn').addEventListener('click', addItem);
 document.getElementById('item-input').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
 
-// ── Toggle done
-function toggle(id) {
-  const items = getItems();
-  const item  = items.find(i => i.id === id);
-  if (!item) return;
-  item.done = !item.done;
-  setItems(items);
-  if (activeTab === 'add')  renderMyItems();
-  if (activeTab === 'list') renderAllItems();
+// ── Attach click listeners on items
+function attachListeners(container) {
+  container.querySelectorAll('.item').forEach(el => {
+    el.addEventListener('click', async () => {
+      const id    = el.dataset.id;
+      const coche = el.dataset.coche === 'true';
+
+      // Optimistic UI update
+      el.classList.toggle('done', !coche);
+      el.dataset.coche = String(!coche);
+      el.querySelector('.check-circle').style.transition = 'none';
+
+      await updateCoche(id, !coche);
+    });
+  });
 }
 
-// ── Build item HTML
+// ── Render: my items
+async function renderMyItems() {
+  const container = document.getElementById('my-items');
+  showLoading(container);
+
+  const items = await fetchItems();
+  if (items === null) { showError(container, 'Erreur de chargement. Vérifiez votre connexion.'); return; }
+
+  const mine = items.filter(i => i.auteur === currentUser);
+  document.getElementById('my-count').textContent = mine.filter(i => !i.coche).length;
+
+  if (mine.length === 0) {
+    container.innerHTML = emptyState('Vous n\'avez encore rien ajouté.<br>Commencez par entrer un article !');
+    return;
+  }
+  const sorted = [...mine].sort((a, b) => a.coche - b.coche);
+  container.innerHTML = sorted.map(i => itemHTML(i, false)).join('');
+  attachListeners(container);
+}
+
+// ── Render: all items
+async function renderAllItems() {
+  const container = document.getElementById('all-items');
+  showLoading(container);
+
+  const items = await fetchItems();
+  if (items === null) { showError(container, 'Erreur de chargement. Vérifiez votre connexion.'); return; }
+
+  document.getElementById('all-count').textContent = items.filter(i => !i.coche).length;
+
+  if (items.length === 0) {
+    container.innerHTML = emptyState('La liste est vide.<br>Ajoutez des articles depuis votre onglet !');
+    return;
+  }
+  const sorted = [...items].sort((a, b) => a.coche - b.coche || a.auteur.localeCompare(b.auteur));
+  container.innerHTML = sorted.map(i => itemHTML(i, true)).join('');
+  attachListeners(container);
+}
+
+// ── HTML builders
 function itemHTML(item, showAuthor) {
   return `
-    <div class="item${item.done ? ' done' : ''}" data-id="${item.id}">
+    <div class="item${item.coche ? ' done' : ''}" data-id="${esc(String(item.id))}" data-coche="${item.coche}">
       <div class="check-circle">
         <svg class="check-icon" width="11" height="11" viewBox="0 0 11 11" fill="none"
              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -456,50 +590,13 @@ function itemHTML(item, showAuthor) {
         </svg>
       </div>
       <div class="item-info">
-        <div class="item-name">${esc(item.text)}</div>
-        ${showAuthor ? `<div class="item-author">Ajouté par <strong>${esc(item.by)}</strong></div>` : ''}
+        <div class="item-name">${esc(item.texte)}</div>
+        ${showAuthor ? `<div class="item-author">Ajouté par <strong>${esc(item.auteur)}</strong></div>` : ''}
       </div>
     </div>
   `;
 }
 
-function attachListeners(container) {
-  container.querySelectorAll('.item').forEach(el =>
-    el.addEventListener('click', () => toggle(Number(el.dataset.id)))
-  );
-}
-
-// ── Render: my items
-function renderMyItems() {
-  const mine = getItems().filter(i => i.by === currentUser);
-  const container = document.getElementById('my-items');
-  document.getElementById('my-count').textContent = mine.filter(i => !i.done).length;
-
-  if (mine.length === 0) {
-    container.innerHTML = emptyState('Vous n\'avez encore rien ajouté.<br>Commencez par entrer un article !');
-    return;
-  }
-  const sorted = [...mine].sort((a, b) => a.done - b.done);
-  container.innerHTML = sorted.map(i => itemHTML(i, false)).join('');
-  attachListeners(container);
-}
-
-// ── Render: all items
-function renderAllItems() {
-  const items = getItems();
-  const container = document.getElementById('all-items');
-  document.getElementById('all-count').textContent = items.filter(i => !i.done).length;
-
-  if (items.length === 0) {
-    container.innerHTML = emptyState('La liste est vide.<br>Ajoutez des articles depuis votre onglet !');
-    return;
-  }
-  const sorted = [...items].sort((a, b) => a.done - b.done || a.by.localeCompare(b.by));
-  container.innerHTML = sorted.map(i => itemHTML(i, true)).join('');
-  attachListeners(container);
-}
-
-// ── Empty state
 function emptyState(msg) {
   return `
     <div class="empty">
@@ -513,7 +610,18 @@ function emptyState(msg) {
   `;
 }
 
+function showLoading(container) {
+  if (typeof container === 'string') container = document.getElementById(container);
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+}
+
+function showError(container, msg) {
+  if (typeof container === 'string') container = document.getElementById(container);
+  container.innerHTML = `<div class="error-banner">${esc(msg)}</div>`;
+}
+
 // ── Init
+setupRealtime();
 renderHome();
 </script>
 </body>
