@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Liste de courses</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #16a34a;
+      --green-light: #dcfce7;
+      --green-dark:  #15803d;
+      --bg:          #f3f4f6;
+      --surface:     #ffffff;
+      --text:        #111827;
+      --muted:       #6b7280;
+      --border:      #e5e7eb;
+      --shadow:      0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+      --radius:      14px;
+      --radius-sm:   10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 440px;
+      margin: 0 auto;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--green);
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .app-header h1 { font-size: 1.1rem; font-weight: 700; }
+    .header-right  { display: flex; align-items: center; gap: 8px; }
+    .chip {
+      background: rgba(255,255,255,0.22);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-ghost:active { background: rgba(255,255,255,0.3); }
+
+    /* ── Views ── */
+    .view { padding: 20px 16px; }
+    .hidden { display: none !important; }
+
+    /* ── Home ── */
+    .home-hero {
+      text-align: center;
+      padding: 36px 0 28px;
+    }
+    .cart-icon {
+      width: 60px; height: 60px;
+      background: var(--green);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+      box-shadow: 0 4px 14px rgba(22,163,74,0.35);
+    }
+    .home-hero h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .home-hero p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── User buttons ── */
+    .user-btn {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg);
+      border: 2px solid transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+      transition: border-color 0.12s, background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .user-btn:last-child { margin-bottom: 0; }
+    .user-btn:active { border-color: var(--green); background: var(--green-light); }
+
+    .avatar {
+      width: 36px; height: 36px;
+      background: var(--green);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.88rem;
+      flex-shrink: 0;
+    }
+
+    .empty-msg { text-align: center; color: var(--muted); font-size: 0.88rem; padding: 4px 0 8px; }
+
+    /* ── Form row ── */
+    .form-row { display: flex; gap: 8px; }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      color: var(--text);
+      background: white;
+      outline: none;
+      min-width: 0;
+      transition: border-color 0.12s;
+    }
+    input[type="text"]:focus { border-color: var(--green); }
+    input[type="text"]::placeholder { color: #9ca3af; }
+
+    .btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s, transform 0.1s;
+    }
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:active { background: var(--green-dark); transform: scale(0.97); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 4px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--green); color: white; font-weight: 600; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title { font-weight: 600; font-size: 0.88rem; color: var(--muted); }
+    .badge {
+      background: var(--green-light);
+      color: var(--green-dark);
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* ── Item ── */
+    .item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 13px 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .item.done { opacity: 0.5; }
+
+    .check-circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .item.done .check-circle { background: var(--green); border-color: var(--green); }
+    .check-icon { opacity: 0; transition: opacity 0.15s; color: white; }
+    .item.done .check-icon { opacity: 1; }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .item.done .item-name { text-decoration: line-through; color: var(--muted); }
+    .item-author { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 44px 20px;
+      color: var(--muted);
+    }
+    .empty svg { margin-bottom: 14px; opacity: 0.25; display: block; margin-left: auto; margin-right: auto; }
+    .empty p { font-size: 0.9rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ HOME ════════════ -->
+<div id="home">
+  <div class="view">
+    <div class="home-hero">
+      <div class="cart-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </div>
+      <h1>Liste de courses</h1>
+      <p>Partagée entre tous sur cet appareil</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Qui es-tu ?</div>
+      <div id="user-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Nouveau prénom</div>
+      <div class="form-row">
+        <input type="text" id="new-name" placeholder="Entrer un prénom…" maxlength="20" autocomplete="off">
+        <button class="btn btn-primary" id="create-btn">Créer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ APP ════════════ -->
+<div id="app" class="hidden">
+  <header class="app-header">
+    <h1>Liste de courses</h1>
+    <div class="header-right">
+      <span class="chip" id="user-chip"></span>
+      <button class="btn-ghost" id="logout-btn">Changer</button>
+    </div>
+  </header>
+
+  <div class="view">
+    <div class="tabs">
+      <button class="tab active" data-tab="add">+ Ajouter</button>
+      <button class="tab"        data-tab="list">La liste</button>
+    </div>
+
+    <!-- ── Add panel ── -->
+    <div id="panel-add">
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-title">Nouvel article</div>
+        <div class="form-row">
+          <input type="text" id="item-input" placeholder="Pain, lait, tomates…" maxlength="60" autocomplete="off">
+          <button class="btn btn-primary" id="add-btn">Ajouter</button>
+        </div>
+      </div>
+      <div class="section-header">
+        <span class="section-title">Mes articles</span>
+        <span class="badge" id="my-count">0</span>
+      </div>
+      <div id="my-items"></div>
+    </div>
+
+    <!-- ── List panel ── -->
+    <div id="panel-list" class="hidden">
+      <div class="section-header">
+        <span class="section-title">Tous les articles</span>
+        <span class="badge" id="all-count">0</span>
+      </div>
+      <div id="all-items"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const K_USERS = 'grocery:users';
+const K_ITEMS = 'grocery:items';
+
+let currentUser = null;
+let activeTab    = 'add';
+
+// ── Storage helpers
+function getUsers() { return JSON.parse(localStorage.getItem(K_USERS) || '[]'); }
+function setUsers(u) { localStorage.setItem(K_USERS, JSON.stringify(u)); }
+function getItems() { return JSON.parse(localStorage.getItem(K_ITEMS) || '[]'); }
+function setItems(i) { localStorage.setItem(K_ITEMS, JSON.stringify(i)); }
+
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ── Home: render user list
+function renderHome() {
+  const users = getUsers();
+  const container = document.getElementById('user-list');
+  if (users.length === 0) {
+    container.innerHTML = '<p class="empty-msg">Personne pour l\'instant — crée un prénom !</p>';
+    return;
+  }
+  container.innerHTML = users.map(name => `
+    <button class="user-btn" data-name="${esc(name)}">
+      <div class="avatar">${esc(name.charAt(0).toUpperCase())}</div>
+      <span>${esc(name)}</span>
+    </button>
+  `).join('');
+  container.querySelectorAll('.user-btn').forEach(btn =>
+    btn.addEventListener('click', () => login(btn.dataset.name))
+  );
+}
+
+function createUser() {
+  const input = document.getElementById('new-name');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  input.value = '';
+
+  const users = getUsers();
+  if (!users.includes(name)) { users.push(name); setUsers(users); }
+  login(name);
+}
+
+document.getElementById('create-btn').addEventListener('click', createUser);
+document.getElementById('new-name').addEventListener('keydown', e => { if (e.key === 'Enter') createUser(); });
+
+// ── Login / logout
+function login(name) {
+  currentUser = name;
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('user-chip').textContent = name;
+  switchTab('add');
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  currentUser = null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('home').classList.remove('hidden');
+  renderHome();
+});
+
+// ── Tabs
+document.querySelectorAll('.tab').forEach(btn =>
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+);
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+  document.getElementById('panel-add').classList.toggle('hidden',  tab !== 'add');
+  document.getElementById('panel-list').classList.toggle('hidden', tab !== 'list');
+  if (tab === 'add')  renderMyItems();
+  if (tab === 'list') renderAllItems();
+}
+
+// ── Add item
+function addItem() {
+  const input = document.getElementById('item-input');
+  const text  = input.value.trim();
+  if (!text) { input.focus(); return; }
+  input.value = '';
+  input.focus();
+
+  const items = getItems();
+  items.unshift({ id: Date.now(), text, by: currentUser, done: false });
+  setItems(items);
+  renderMyItems();
+}
+
+document.getElementById('add-btn').addEventListener('click', addItem);
+document.getElementById('item-input').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+// ── Toggle done
+function toggle(id) {
+  const items = getItems();
+  const item  = items.find(i => i.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  setItems(items);
+  if (activeTab === 'add')  renderMyItems();
+  if (activeTab === 'list') renderAllItems();
+}
+
+// ── Build item HTML
+function itemHTML(item, showAuthor) {
+  return `
+    <div class="item${item.done ? ' done' : ''}" data-id="${item.id}">
+      <div class="check-circle">
+        <svg class="check-icon" width="11" height="11" viewBox="0 0 11 11" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
+        </svg>
+      </div>
+      <div class="item-info">
+        <div class="item-name">${esc(item.text)}</div>
+        ${showAuthor ? `<div class="item-author">Ajouté par <strong>${esc(item.by)}</strong></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function attachListeners(container) {
+  container.querySelectorAll('.item').forEach(el =>
+    el.addEventListener('click', () => toggle(Number(el.dataset.id)))
+  );
+}
+
+// ── Render: my items
+function renderMyItems() {
+  const mine = getItems().filter(i => i.by === currentUser);
+  const container = document.getElementById('my-items');
+  document.getElementById('my-count').textContent = mine.filter(i => !i.done).length;
+
+  if (mine.length === 0) {
+    container.innerHTML = emptyState('Vous n\'avez encore rien ajouté.<br>Commencez par entrer un article !');
+    return;
+  }
+  const sorted = [...mine].sort((a, b) => a.done - b.done);
+  container.innerHTML = sorted.map(i => itemHTML(i, false)).join('');
+  attachListeners(container);
+}
+
+// ── Render: all items
+function renderAllItems() {
+  const items = getItems();
+  const container = document.getElementById('all-items');
+  document.getElementById('all-count').textContent = items.filter(i => !i.done).length;
+
+  if (items.length === 0) {
+    container.innerHTML = emptyState('La liste est vide.<br>Ajoutez des articles depuis votre onglet !');
+    return;
+  }
+  const sorted = [...items].sort((a, b) => a.done - b.done || a.by.localeCompare(b.by));
+  container.innerHTML = sorted.map(i => itemHTML(i, true)).join('');
+  attachListeners(container);
+}
+
+// ── Empty state
+function emptyState(msg) {
+  return `
+    <div class="empty">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <p>${msg}</p>
+    </div>
+  `;
+}
+
+// ── Init
+renderHome();
+</script>
+</body>
+</html>
