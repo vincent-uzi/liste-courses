@@ -382,21 +382,37 @@ const db = createClient(
 );
 
 // ── State
-const K_USERS = 'grocery:users';
 let currentUser = null;
 let activeTab   = 'add';
 
 // ── Helpers
-function getUsers() { return JSON.parse(localStorage.getItem(K_USERS) || '[]'); }
-function setUsers(u) { localStorage.setItem(K_USERS, JSON.stringify(u)); }
-
 function esc(str) {
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
 }
 
-// ── Supabase queries
+// ── Supabase queries — utilisateurs
+async function fetchUsers() {
+  const { data, error } = await db
+    .from('utilisateurs')
+    .select('*')
+    .order('cree_le', { ascending: true });
+  if (error) { console.error('Supabase users fetch error:', error); return null; }
+  return data;
+}
+
+async function insertUser(prenom) {
+  const { data, error } = await db
+    .from('utilisateurs')
+    .insert({ prenom })
+    .select()
+    .single();
+  if (error) { console.error('Supabase user insert error:', error); return null; }
+  return data;
+}
+
+// ── Supabase queries — items
 async function fetchItems() {
   const { data, error } = await db
     .from('items')
@@ -438,17 +454,23 @@ function setupRealtime() {
 }
 
 // ── Home
-function renderHome() {
-  const users = getUsers();
+async function renderHome() {
   const container = document.getElementById('user-list');
+  showLoading(container);
+
+  const users = await fetchUsers();
+  if (users === null) {
+    showError(container, 'Impossible de charger les utilisateurs. Vérifiez votre connexion.');
+    return;
+  }
   if (users.length === 0) {
     container.innerHTML = '<p class="empty-msg">Personne pour l\'instant — crée un prénom !</p>';
     return;
   }
-  container.innerHTML = users.map(name => `
-    <button class="user-btn" data-name="${esc(name)}">
-      <div class="avatar">${esc(name.charAt(0).toUpperCase())}</div>
-      <span>${esc(name)}</span>
+  container.innerHTML = users.map(u => `
+    <button class="user-btn" data-name="${esc(u.prenom)}">
+      <div class="avatar">${esc(u.prenom.charAt(0).toUpperCase())}</div>
+      <span>${esc(u.prenom)}</span>
     </button>
   `).join('');
   container.querySelectorAll('.user-btn').forEach(btn =>
@@ -456,14 +478,32 @@ function renderHome() {
   );
 }
 
-function createUser() {
+async function createUser() {
   const input = document.getElementById('new-name');
-  const name  = input.value.trim();
-  if (!name) { input.focus(); return; }
+  const prenom = input.value.trim();
+  if (!prenom) { input.focus(); return; }
+
+  const btn = document.getElementById('create-btn');
+  btn.disabled = true;
   input.value = '';
-  const users = getUsers();
-  if (!users.includes(name)) { users.push(name); setUsers(users); }
-  login(name);
+
+  // Si le prénom existe déjà, se connecter directement
+  const users = await fetchUsers();
+  if (users && users.find(u => u.prenom === prenom)) {
+    btn.disabled = false;
+    login(prenom);
+    return;
+  }
+
+  const user = await insertUser(prenom);
+  btn.disabled = false;
+
+  if (!user) {
+    input.value = prenom;
+    showError(document.getElementById('user-list'), 'Impossible de créer l\'utilisateur. Vérifiez votre connexion.');
+    return;
+  }
+  login(user.prenom);
 }
 
 document.getElementById('create-btn').addEventListener('click', createUser);
