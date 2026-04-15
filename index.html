@@ -2,667 +2,882 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Liste de courses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f2f2f7">
+  <title>Uzi List</title>
+  <link rel="manifest" href="manifest.json">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{
+      --bg:#f2f2f7;--card:rgba(255,255,255,0.9);--text:#1c1c1e;--text2:#6b6b6b;
+      --blue:#1a6bb5;--border:rgba(0,0,0,0.08);--r:16px;--r2:12px;
+    }
+    html,body,#root{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+    body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--text)}
 
-    :root {
-      --green:       #16a34a;
-      --green-light: #dcfce7;
-      --green-dark:  #15803d;
-      --bg:          #f3f4f6;
-      --surface:     #ffffff;
-      --text:        #111827;
-      --muted:       #6b7280;
-      --border:      #e5e7eb;
-      --shadow:      0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
-      --radius:      14px;
-      --radius-sm:   10px;
-    }
+    .app{position:relative;width:100%;height:100%;max-width:430px;margin:0 auto;overflow:hidden}
+    .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);padding-bottom:env(safe-area-inset-bottom,0)}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      max-width: 440px;
-      margin: 0 auto;
-      -webkit-font-smoothing: antialiased;
-    }
+    .sec{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600}
+    .card{background:var(--card);border-radius:var(--r);border:.5px solid var(--border)}
 
-    /* ── Header ── */
-    .app-header {
-      background: var(--green);
-      color: white;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .app-header h1 { font-size: 1.1rem; font-weight: 700; }
-    .header-right  { display: flex; align-items: center; gap: 8px; }
-    .chip {
-      background: rgba(255,255,255,0.22);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 500;
-    }
-    .btn-ghost {
-      background: rgba(255,255,255,0.15);
-      border: none;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .btn-ghost:active { background: rgba(255,255,255,0.3); }
+    /* ── Avatar ── */
+    .av{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;user-select:none}
+    .av-lg{width:40px;height:40px;font-size:14px}
+    .av-md{width:34px;height:34px;font-size:13px}
+    .av-sm{width:28px;height:28px;font-size:11px}
 
-    /* ── Real-time dot ── */
-    #rt-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      flex-shrink: 0;
-      transition: background 0.4s;
-    }
-    #rt-dot.connected { background: #86efac; }
-    #rt-dot.error     { background: #fca5a5; }
+    /* ══ SCREEN A ══ */
+    .sa{padding:60px 20px 40px;display:flex;flex-direction:column;min-height:100%}
+    .sa-logo{font-size:32px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+    .sa-sub{color:var(--text2);font-size:15px;margin-bottom:40px}
+    .user-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:var(--r);border:.5px solid var(--border);cursor:pointer;margin-bottom:8px;transition:transform .1s,background .1s}
+    .user-btn:hover{background:rgba(255,255,255,1)}
+    .user-btn:active{transform:scale(.98)}
+    .user-btn-name{font-size:15px;font-weight:500}
 
-    /* ── Views ── */
-    .view { padding: 20px 16px; }
-    .hidden { display: none !important; }
+    /* ══ SCREEN B ══ */
+    .sb-head{padding:16px 16px 0}
+    .sb-foyer-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600;margin-bottom:2px}
+    .sb-foyer-name{font-size:24px;font-weight:700;letter-spacing:-.8px;margin-bottom:16px}
+    .hero-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 12px}
+    .hero-block{background:var(--card);border-radius:var(--r);border:.5px solid var(--border);padding:16px;cursor:pointer;transition:transform .1s,background .1s}
+    .hero-block:hover{background:rgba(255,255,255,1)}
+    .hero-block:active{transform:scale(.97)}
+    .hero-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600;margin-bottom:8px}
+    .hero-count{font-size:36px;font-weight:800;letter-spacing:-1.5px}
+    .hero-sub{font-size:12px;color:var(--text2);margin-top:2px}
 
-    /* ── Home ── */
-    .home-hero {
-      text-align: center;
-      padding: 36px 0 28px;
-    }
-    .cart-icon {
-      width: 60px; height: 60px;
-      background: var(--green);
-      border-radius: 18px;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 18px;
-      box-shadow: 0 4px 14px rgba(22,163,74,0.35);
-    }
-    .home-hero h1 {
-      font-size: 1.7rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-    }
-    .home-hero p { color: var(--muted); font-size: 0.9rem; }
+    /* Add block */
+    .add-block{margin:0 16px 12px;border-radius:var(--r);border:.5px solid var(--border);padding:16px}
+    .add-micro{font-size:13px;color:var(--text2);margin-bottom:10px;font-style:italic}
+    .add-row{display:flex;gap:10px;align-items:center}
+    .add-input{flex:1;padding:11px 14px;border:1px solid var(--border);border-radius:var(--r2);font-size:15px;background:#fff;color:var(--text);outline:none;min-width:0;transition:border-color .15s}
+    .add-input:focus{border-color:var(--blue)}
+    .add-btn{width:48px;height:48px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .1s,filter .1s}
+    .add-btn:hover{filter:brightness(1.1)}
+    .add-btn:active{transform:scale(.95)}
+    .add-btn:disabled{opacity:.5}
 
-    /* ── Card ── */
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
-    }
-    .card-title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
+    /* Leaderboard */
+    .lb-wrap{margin:0 16px 20px}
+    .lb-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--border);overflow:hidden}
+    .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);transition:background .12s}
+    .lb-row:last-child{border-bottom:none}
+    .lb-row:hover{background:rgba(0,0,0,.025)}
+    .lb-row.r1{background:#fdf8ee}
+    .lb-row.r1:hover{background:#fdf3e0}
+    .lb-score{font-weight:800;perspective:200px}
+    @keyframes scoreFlip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+    .score-flip{animation:scoreFlip 200ms ease}
 
-    /* ── User buttons ── */
-    .user-btn {
-      display: flex; align-items: center; gap: 12px;
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--bg);
-      border: 2px solid transparent;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 8px;
-      transition: border-color 0.12s, background 0.12s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .user-btn:last-child { margin-bottom: 0; }
-    .user-btn:active { border-color: var(--green); background: var(--green-light); }
+    /* ══ SCREEN C ══ */
+    .sc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;background:var(--bg);position:sticky;top:0;z-index:10;border-bottom:.5px solid var(--border)}
+    .back-btn{display:flex;align-items:center;gap:4px;color:var(--blue);font-size:17px;cursor:pointer;background:none;border:none;padding:4px 0}
+    .sc-count{font-size:17px;font-weight:600}
+    .sort-wrap{position:relative}
+    .sort-btn{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px 8px}
+    .sort-dd{position:absolute;right:0;top:110%;background:var(--card);border-radius:var(--r2);border:.5px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:200px;z-index:50;overflow:hidden}
+    .sort-opt{padding:12px 16px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+    .sort-opt:hover{background:var(--bg)}
+    .sort-opt.sel{color:var(--blue)}
+    .sc-items{padding:8px 16px 40px}
 
-    .avatar {
-      width: 36px; height: 36px;
-      background: var(--green);
-      color: white;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      font-size: 0.88rem;
-      flex-shrink: 0;
-    }
+    /* Item row */
+    .item-wrap{position:relative;margin-bottom:8px;border-radius:var(--r2);overflow:hidden}
+    .item-del-bg{position:absolute;inset:0;background:#ff3b30;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;border-radius:var(--r2);color:#fff;font-size:18px}
+    .item-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-radius:var(--r2);border:.5px solid var(--border);position:relative;z-index:1;will-change:transform}
+    @keyframes itemIn{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .item-new{animation:itemIn 300ms ease-out}
 
-    .empty-msg { text-align: center; color: var(--muted); font-size: 0.88rem; padding: 4px 0 8px; }
+    /* Check circle */
+    .chk-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;transition:border-color .15s}
+    .chk-fill{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 250ms ease-out}
+    .chk-circle.done .chk-fill{transform:scale(1)}
+    .item-name{flex:1;font-size:15px}
+    .item-name.done{text-decoration:line-through;color:#aaa}
+    .item-rayon{font-size:11px;color:var(--text2);margin-top:1px}
+    .sep-row{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600;padding:14px 0 6px}
+    .bought-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 0 6px}
+    .del-bought-btn{background:none;border:none;font-size:12px;color:#aaa;text-decoration:underline;cursor:pointer}
 
-    /* ── Form row ── */
-    .form-row { display: flex; gap: 8px; }
+    /* ══ TOAST ══ */
+    .toast-wrap{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:0 16px 36px;z-index:9999;pointer-events:none}
+    .toast{background:rgba(255,255,255,.97);border-radius:12px;border:.5px solid rgba(0,0,0,.1);padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,.12);pointer-events:all;max-width:380px;width:100%;transform:translateY(80px);opacity:0;transition:transform 200ms ease-out,opacity 200ms ease-out}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast-msg{flex:1;font-size:14px;color:var(--text2)}
+    .toast-act{font-size:14px;font-weight:600;color:var(--blue);cursor:pointer;background:none;border:none;padding:0;white-space:nowrap}
 
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 14px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      color: var(--text);
-      background: white;
-      outline: none;
-      min-width: 0;
-      transition: border-color 0.12s;
-    }
-    input[type="text"]:focus { border-color: var(--green); }
-    input[type="text"]::placeholder { color: #9ca3af; }
+    /* ══ TEAM MODAL ══ */
+    .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeOv 250ms ease-out}
+    @keyframes fadeOv{from{opacity:0}to{opacity:1}}
+    .modal-sheet{background:var(--bg);border-radius:20px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding-bottom:24px;animation:sheetIn 250ms ease-out}
+    @keyframes sheetIn{from{transform:scale(.95) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+    .modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 14px}
+    .modal-title{font-size:20px;font-weight:700}
+    .modal-sub{font-size:13px;color:var(--text2);margin-bottom:2px}
+    .modal-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.08);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2)}
+    .team-wrap{overflow:hidden;border-bottom:.5px solid var(--border);position:relative}
+    .team-wrap:last-child{border-bottom:none}
+    .team-del-bg{position:absolute;inset:0;background:#ff3b30;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff;font-size:15px;font-weight:500}
+    .team-row{display:flex;align-items:center;gap:12px;padding:10px 0;position:relative;z-index:1;background:var(--bg);will-change:transform}
+    .color-picker{position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--card);border-radius:var(--r2);border:.5px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.1);padding:6px;z-index:20;display:flex;flex-direction:column;gap:4px}
+    .c-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s}
+    .c-dot:active{transform:scale(.9)}
+    .c-dot.sel{border-color:rgba(0,0,0,.4)}
 
-    .btn {
-      padding: 12px 18px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.12s, transform 0.1s;
-    }
-    .btn-primary { background: var(--green); color: white; }
-    .btn-primary:active { background: var(--green-dark); transform: scale(0.97); }
+    /* Inline add */
+    .inline-add{display:flex;gap:8px;padding:10px 16px;background:var(--card);border-radius:var(--r2);border:.5px solid var(--border);margin:8px 16px}
+    .inline-input{flex:1;border:none;background:transparent;font-size:15px;color:var(--text);outline:none}
+    .inline-btn{background:none;border:none;color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}
+    .inline-btn.muted{color:var(--text2)}
 
-    /* ── Tabs ── */
-    .tabs {
-      display: flex;
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 4px;
-      box-shadow: var(--shadow);
-      margin-bottom: 18px;
-      gap: 4px;
-    }
-    .tab {
-      flex: 1;
-      padding: 10px 12px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      background: transparent;
-      transition: all 0.15s;
-    }
-    .tab.active { background: var(--green); color: white; font-weight: 600; }
-
-    /* ── Section header ── */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .section-title { font-weight: 600; font-size: 0.88rem; color: var(--muted); }
-    .badge {
-      background: var(--green-light);
-      color: var(--green-dark);
-      border-radius: 20px;
-      padding: 2px 9px;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-
-    /* ── Item ── */
-    .item {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--surface);
-      border-radius: var(--radius-sm);
-      padding: 13px 14px;
-      box-shadow: var(--shadow);
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .item.done { opacity: 0.5; }
-
-    .check-circle {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.15s;
-    }
-    .item.done .check-circle { background: var(--green); border-color: var(--green); }
-    .check-icon { opacity: 0; transition: opacity 0.15s; color: white; }
-    .item.done .check-icon { opacity: 1; }
-
-    .item-info { flex: 1; min-width: 0; }
-    .item-name {
-      font-size: 0.95rem;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .item.done .item-name { text-decoration: line-through; color: var(--muted); }
-    .item-author { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-    /* ── Loading spinner ── */
-    .loading {
-      display: flex;
-      justify-content: center;
-      padding: 40px 20px;
-    }
-    .spinner {
-      width: 26px; height: 26px;
-      border: 3px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Empty state ── */
-    .empty {
-      text-align: center;
-      padding: 44px 20px;
-      color: var(--muted);
-    }
-    .empty svg { margin-bottom: 14px; opacity: 0.25; display: block; margin-left: auto; margin-right: auto; }
-    .empty p { font-size: 0.9rem; line-height: 1.6; }
-
-    /* ── Error banner ── */
-    .error-banner {
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      margin-bottom: 14px;
-    }
+    .fab{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;border:.5px solid var(--border);background:var(--card);font-size:24px;cursor:pointer;color:var(--text2);transition:transform .1s}
+    .fab:active{transform:scale(.95)}
+    .rt-dot{width:6px;height:6px;border-radius:50%;display:inline-block;background:rgba(0,0,0,.15);transition:background .3s;margin-left:6px}
+    .rt-dot.on{background:#34c759}
+    .loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text2);font-size:15px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:22px;height:22px;border:2.5px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;margin-right:10px}
   </style>
 </head>
 <body>
+  <div id="root"></div>
 
-<!-- ════════════ HOME ════════════ -->
-<div id="home">
-  <div class="view">
-    <div class="home-hero">
-      <div class="cart-icon">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-      </div>
-      <h1>Liste de courses</h1>
-      <p>Partagée en temps réel sur tous les appareils</p>
-    </div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <div class="card">
-      <div class="card-title">Qui es-tu ?</div>
-      <div id="user-list"></div>
-    </div>
+  <script type="text/babel">
+  'use strict';
 
-    <div class="card">
-      <div class="card-title">Nouveau prénom</div>
-      <div class="form-row">
-        <input type="text" id="new-name" placeholder="Entrer un prénom…" maxlength="20" autocomplete="off">
-        <button class="btn btn-primary" id="create-btn">Créer</button>
-      </div>
-    </div>
-  </div>
-</div>
+  // ─── CONFIG ───────────────────────────────────────────────────────────────
+  const SB_URL = 'https://epsocrlmmkodlidbtdpz.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwc29jcmxtbWtvZGxpZGJ0ZHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDk4NDgsImV4cCI6MjA5MTcyNTg0OH0.UL5ZR7fVb7BbizL6zfKklmXqQFO85tJ3FyL6NxzJzcs';
 
-<!-- ════════════ APP ════════════ -->
-<div id="app" class="hidden">
-  <header class="app-header">
-    <h1>Liste de courses</h1>
-    <div class="header-right">
-      <div id="rt-dot" title="Connexion temps réel"></div>
-      <span class="chip" id="user-chip"></span>
-      <button class="btn-ghost" id="logout-btn">Changer</button>
-    </div>
-  </header>
+  const COLORS = ['#7dbfa3','#d4789a','#6a9fd4','#c4a04a','#a78bcc','#e08060','#60b8d4','#98c46a'];
+  const db = window.supabase.createClient(SB_URL, SB_KEY);
 
-  <div class="view">
-    <div class="tabs">
-      <button class="tab active" data-tab="add">+ Ajouter</button>
-      <button class="tab"        data-tab="list">La liste</button>
-    </div>
+  const { useState, useEffect, useRef, useCallback, useMemo } = React;
+  const { createRoot } = ReactDOM;
 
-    <!-- ── Add panel ── -->
-    <div id="panel-add">
-      <div class="card" style="margin-bottom:18px">
-        <div class="card-title">Nouvel article</div>
-        <div class="form-row">
-          <input type="text" id="item-input" placeholder="Pain, lait, tomates…" maxlength="60" autocomplete="off">
-          <button class="btn btn-primary" id="add-btn">Ajouter</button>
+  // ─── HELPERS ──────────────────────────────────────────────────────────────
+  const initials = p => {
+    if (!p) return '?';
+    const parts = p.trim().split(/[\s\-]+/);
+    return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : p.slice(0,2).toUpperCase();
+  };
+  const hex2rgb = h => `${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`;
+  const uColor = u => u?.couleur || COLORS[0];
+
+  // ─── ANTHROPIC API ────────────────────────────────────────────────────────
+  async function categorize(texte, attempt = 0) {
+    try {
+      const r = await fetch('/api/categorize', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ texte })
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        console.error(`[Rayon] Erreur proxy ${r.status}:`, err?.error || err);
+        if (attempt < 1) { console.log('[Rayon] Nouvelle tentative…'); return categorize(texte, attempt + 1); }
+        return null;
+      }
+      const d = await r.json();
+      const rayon = d.rayon || null;
+      console.log(`[Rayon] "${texte}" → ${rayon}`);
+      return rayon;
+    } catch (e) {
+      console.error('[Rayon] Erreur réseau:', e.message);
+      if (attempt < 1) { console.log('[Rayon] Nouvelle tentative…'); return categorize(texte, attempt + 1); }
+      return null;
+    }
+  }
+
+  async function categorizeAndSave(item) {
+    const rayon = await categorize(item.texte);
+    if (rayon) await db.from('items').update({ rayon }).eq('id', item.id);
+    return rayon;
+  }
+
+  // ─── ARC ANIMATION ────────────────────────────────────────────────────────
+  function arcFly(fromEl, toEl, text, color) {
+    if (!fromEl || !toEl) return;
+    const fr = fromEl.getBoundingClientRect();
+    const to = toEl.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.textContent = text;
+    Object.assign(el.style, {
+      position:'fixed', left:fr.left+'px', top:fr.top+'px',
+      width:Math.min(fr.width,220)+'px', height:fr.height+'px',
+      background:color, borderRadius:'12px', color:'#fff',
+      display:'flex', alignItems:'center', padding:'0 14px',
+      fontSize:'15px', fontWeight:'500', zIndex:'9998',
+      pointerEvents:'none', overflow:'hidden', whiteSpace:'nowrap',
+      fontFamily:'-apple-system, sans-serif', textOverflow:'ellipsis'
+    });
+    document.body.appendChild(el);
+    const dx = to.left - fr.left, dy = to.top - fr.top;
+    const anim = el.animate([
+      { transform:'translate(0,0) scale(1)', opacity:1 },
+      { transform:`translate(${dx*.5}px,${dy*.3-30}px) scale(.85)`, opacity:.85, offset:.45 },
+      { transform:`translate(${dx}px,${dy}px) scale(.2)`, opacity:0 }
+    ], { duration:400, easing:'cubic-bezier(0.34,1.56,0.64,1)', fill:'forwards' });
+    anim.onfinish = () => el.remove();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPONENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  function Av({ prenom, couleur, size = 'md' }) {
+    return <div className={`av av-${size}`} style={{ background: couleur || COLORS[0] }}>{initials(prenom)}</div>;
+  }
+
+  // ─── TOAST ────────────────────────────────────────────────────────────────
+  function Toast({ toast }) {
+    const [show, setShow] = useState(false);
+    const timer = useRef(null);
+    const cur = useRef(toast);
+
+    useEffect(() => {
+      cur.current = toast;
+      if (toast) {
+        setShow(true);
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => {
+          setShow(false);
+          setTimeout(() => cur.current?.onDone?.(), 250);
+        }, 3000);
+      } else {
+        setShow(false);
+      }
+      return () => clearTimeout(timer.current);
+    }, [toast?.id]);
+
+    if (!toast) return null;
+    const cancel = () => {
+      clearTimeout(timer.current);
+      setShow(false);
+      setTimeout(() => { toast.onCancel?.(); toast.onDone?.(); }, 200);
+    };
+    return (
+      <div className="toast-wrap">
+        <div className={`toast ${show ? 'show' : ''}`}>
+          <span className="toast-msg">{toast.message}</span>
+          {toast.onCancel && <button className="toast-act" onClick={cancel}>Annuler</button>}
         </div>
       </div>
-      <div class="section-header">
-        <span class="section-title">Mes articles</span>
-        <span class="badge" id="my-count">0</span>
+    );
+  }
+
+  // ─── SWIPEABLE ITEM ROW ───────────────────────────────────────────────────
+  function ItemRow({ item, users, onToggle, onDelete, isNew }) {
+    const [sx, setSx] = useState(0);
+    const tx = useRef(null), ty = useRef(null), moving = useRef(false);
+    const user = users.find(u => u.prenom === item.auteur);
+    const col = uColor(user);
+
+    const onTS = e => { tx.current = e.touches[0].clientX; ty.current = e.touches[0].clientY; moving.current = false; };
+    const onTM = e => {
+      if (tx.current === null) return;
+      const dx = e.touches[0].clientX - tx.current;
+      const dy = Math.abs(e.touches[0].clientY - ty.current);
+      if (!moving.current && Math.abs(dx) < 6 && dy < 6) return;
+      if (!moving.current && dy > Math.abs(dx)) return;
+      moving.current = true;
+      if (dx < 0) { e.preventDefault(); setSx(Math.max(dx, -110)); }
+    };
+    const onTE = () => { if (sx < -70) onDelete(item.id); else setSx(0); tx.current = null; };
+
+    return (
+      <div className="item-wrap">
+        <div className="item-del-bg">
+          <svg width="18" height="20" viewBox="0 0 18 20" fill="white"><path d="M1 4h16M6 4V2h6v2M2 4l1 14a1 1 0 001 1h10a1 1 0 001-1L16 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
+        </div>
+        <div
+          className={`item-row${isNew ? ' item-new' : ''}`}
+          style={{ transform:`translateX(${sx}px)`, transition:tx.current?'none':'transform 300ms ease-out' }}
+          onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE}
+        >
+          <div
+            className={`chk-circle${item.coche ? ' done' : ''}`}
+            style={{ borderColor:item.coche ? col : undefined }}
+            onClick={() => onToggle(item)}
+          >
+            <div className="chk-fill" style={{ background:col }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1.5,6 5,9.5 10.5,2.5"/>
+              </svg>
+            </div>
+          </div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div className={`item-name${item.coche ? ' done' : ''}`}>{item.texte}</div>
+            {item.rayon && <div className="item-rayon">{item.rayon}</div>}
+          </div>
+          {user && <Av prenom={user.prenom} couleur={col} size="sm" />}
+        </div>
       </div>
-      <div id="my-items"></div>
-    </div>
+    );
+  }
 
-    <!-- ── List panel ── -->
-    <div id="panel-list" class="hidden">
-      <div class="section-header">
-        <span class="section-title">Tous les articles</span>
-        <span class="badge" id="all-count">0</span>
+  // ─── SCREEN A — User selection ────────────────────────────────────────────
+  function ScreenA({ users, onLogin, loading }) {
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [busy, setBusy] = useState(false);
+
+    const create = async () => {
+      const p = name.trim(); if (!p || busy) return;
+      const ex = users.find(u => u.prenom === p);
+      if (ex) { onLogin(ex); return; }
+      setBusy(true);
+      const col = COLORS[users.length % COLORS.length];
+      const { data, error } = await db.from('utilisateurs').insert({ prenom:p, couleur:col }).select().single();
+      setBusy(false);
+      if (!error && data) onLogin(data);
+    };
+
+    return (
+      <div className="screen sa">
+        <div>
+          <div className="sa-logo">Uzi List</div>
+          <div className="sa-sub">Votre liste de courses partagée</div>
+          <div className="sec" style={{ marginBottom:12 }}>Qui es-tu ?</div>
+
+          {loading && <div style={{ display:'flex', alignItems:'center', color:'var(--text2)', padding:'20px 0' }}><div className="spinner"/>Chargement…</div>}
+
+          {!loading && users.length === 0 && !open && (
+            <div style={{ textAlign:'center', padding:'24px 0', color:'var(--text2)', fontSize:15 }}>
+              <div style={{ marginBottom:12 }}>Aucun profil</div>
+            </div>
+          )}
+
+          {users.map(u => (
+            <div key={u.id} className="user-btn" onClick={() => onLogin(u)}>
+              <Av prenom={u.prenom} couleur={u.couleur} size="md" />
+              <span className="user-btn-name">{u.prenom}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ flex:1 }} />
+
+        {open ? (
+          <div className="inline-add">
+            <input className="inline-input" autoFocus placeholder="Votre prénom…" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&create()} maxLength={20} />
+            <button className="inline-btn" onClick={create}>{busy?'…':'OK'}</button>
+            <button className="inline-btn muted" onClick={() => { setOpen(false); setName(''); }}>✕</button>
+          </div>
+        ) : (
+          <div style={{ display:'flex', justifyContent:'center', marginTop:8 }}>
+            <button className="fab" onClick={() => setOpen(true)}>+</button>
+          </div>
+        )}
       </div>
-      <div id="all-items"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Supabase CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-'use strict';
-
-// ── Supabase client
-const { createClient } = window.supabase;
-const db = createClient(
-  'https://epsocrlmmkodlidbtdpz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwc29jcmxtbWtvZGxpZGJ0ZHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDk4NDgsImV4cCI6MjA5MTcyNTg0OH0.UL5ZR7fVb7BbizL6zfKklmXqQFO85tJ3FyL6NxzJzcs'
-);
-
-// ── State
-let currentUser = null;
-let activeTab   = 'add';
-
-// ── Helpers
-function esc(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-// ── Supabase queries — utilisateurs
-async function fetchUsers() {
-  const { data, error } = await db
-    .from('utilisateurs')
-    .select('*')
-    .order('cree_le', { ascending: true });
-  if (error) { console.error('Supabase users fetch error:', error); return null; }
-  return data;
-}
-
-async function insertUser(prenom) {
-  const { data, error } = await db
-    .from('utilisateurs')
-    .insert({ prenom })
-    .select()
-    .single();
-  if (error) { console.error('Supabase user insert error:', error); return null; }
-  return data;
-}
-
-// ── Supabase queries — items
-async function fetchItems() {
-  const { data, error } = await db
-    .from('items')
-    .select('*')
-    .order('cree_le', { ascending: false });
-  if (error) { console.error('Supabase fetch error:', error); return null; }
-  return data;
-}
-
-async function insertItem(texte) {
-  const { error } = await db
-    .from('items')
-    .insert({ texte, auteur: currentUser, coche: false });
-  if (error) { console.error('Supabase insert error:', error); return false; }
-  return true;
-}
-
-async function updateCoche(id, coche) {
-  const { error } = await db
-    .from('items')
-    .update({ coche })
-    .eq('id', id);
-  if (error) { console.error('Supabase update error:', error); return false; }
-  return true;
-}
-
-// ── Real-time subscription
-function setupRealtime() {
-  const dot = document.getElementById('rt-dot');
-  db.channel('items-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => {
-      if (!currentUser) return;
-      if (activeTab === 'add')  renderMyItems();
-      else                      renderAllItems();
-    })
-    .subscribe(status => {
-      dot.className = status === 'SUBSCRIBED' ? 'connected' : status === 'CHANNEL_ERROR' ? 'error' : '';
-    });
-}
-
-// ── Home
-async function renderHome() {
-  const container = document.getElementById('user-list');
-  showLoading(container);
-
-  const users = await fetchUsers();
-  if (users === null) {
-    showError(container, 'Impossible de charger les utilisateurs. Vérifiez votre connexion.');
-    return;
-  }
-  if (users.length === 0) {
-    container.innerHTML = '<p class="empty-msg">Personne pour l\'instant — crée un prénom !</p>';
-    return;
-  }
-  container.innerHTML = users.map(u => `
-    <button class="user-btn" data-name="${esc(u.prenom)}">
-      <div class="avatar">${esc(u.prenom.charAt(0).toUpperCase())}</div>
-      <span>${esc(u.prenom)}</span>
-    </button>
-  `).join('');
-  container.querySelectorAll('.user-btn').forEach(btn =>
-    btn.addEventListener('click', () => login(btn.dataset.name))
-  );
-}
-
-async function createUser() {
-  const input = document.getElementById('new-name');
-  const prenom = input.value.trim();
-  if (!prenom) { input.focus(); return; }
-
-  const btn = document.getElementById('create-btn');
-  btn.disabled = true;
-  input.value = '';
-
-  // Si le prénom existe déjà, se connecter directement
-  const users = await fetchUsers();
-  if (users && users.find(u => u.prenom === prenom)) {
-    btn.disabled = false;
-    login(prenom);
-    return;
+    );
   }
 
-  const user = await insertUser(prenom);
-  btn.disabled = false;
-
-  if (!user) {
-    input.value = prenom;
-    showError(document.getElementById('user-list'), 'Impossible de créer l\'utilisateur. Vérifiez votre connexion.');
-    return;
-  }
-  login(user.prenom);
-}
-
-document.getElementById('create-btn').addEventListener('click', createUser);
-document.getElementById('new-name').addEventListener('keydown', e => { if (e.key === 'Enter') createUser(); });
-
-// ── Login / logout
-function login(name) {
-  currentUser = name;
-  document.getElementById('home').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-  document.getElementById('user-chip').textContent = name;
-  switchTab('add');
-}
-
-document.getElementById('logout-btn').addEventListener('click', () => {
-  currentUser = null;
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('home').classList.remove('hidden');
-  renderHome();
-});
-
-// ── Tabs
-document.querySelectorAll('.tab').forEach(btn =>
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab))
-);
-
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab').forEach(b =>
-    b.classList.toggle('active', b.dataset.tab === tab)
-  );
-  document.getElementById('panel-add').classList.toggle('hidden',  tab !== 'add');
-  document.getElementById('panel-list').classList.toggle('hidden', tab !== 'list');
-  if (tab === 'add')  renderMyItems();
-  if (tab === 'list') renderAllItems();
-}
-
-// ── Add item
-async function addItem() {
-  const input = document.getElementById('item-input');
-  const texte = input.value.trim();
-  if (!texte) { input.focus(); return; }
-
-  // Disable button while inserting
-  const btn = document.getElementById('add-btn');
-  btn.disabled = true;
-  input.value = '';
-
-  const ok = await insertItem(texte);
-  btn.disabled = false;
-  input.focus();
-
-  if (ok) renderMyItems();
-  else showError('my-items', 'Impossible d\'ajouter l\'article. Vérifiez votre connexion.');
-}
-
-document.getElementById('add-btn').addEventListener('click', addItem);
-document.getElementById('item-input').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
-
-// ── Attach click listeners on items
-function attachListeners(container) {
-  container.querySelectorAll('.item').forEach(el => {
-    el.addEventListener('click', async () => {
-      const id    = el.dataset.id;
-      const coche = el.dataset.coche === 'true';
-
-      // Optimistic UI update
-      el.classList.toggle('done', !coche);
-      el.dataset.coche = String(!coche);
-      el.querySelector('.check-circle').style.transition = 'none';
-
-      await updateCoche(id, !coche);
-    });
-  });
-}
-
-// ── Render: my items
-async function renderMyItems() {
-  const container = document.getElementById('my-items');
-  showLoading(container);
-
-  const items = await fetchItems();
-  if (items === null) { showError(container, 'Erreur de chargement. Vérifiez votre connexion.'); return; }
-
-  const mine = items.filter(i => i.auteur === currentUser);
-  document.getElementById('my-count').textContent = mine.filter(i => !i.coche).length;
-
-  if (mine.length === 0) {
-    container.innerHTML = emptyState('Vous n\'avez encore rien ajouté.<br>Commencez par entrer un article !');
-    return;
-  }
-  const sorted = [...mine].sort((a, b) => a.coche - b.coche);
-  container.innerHTML = sorted.map(i => itemHTML(i, false)).join('');
-  attachListeners(container);
-}
-
-// ── Render: all items
-async function renderAllItems() {
-  const container = document.getElementById('all-items');
-  showLoading(container);
-
-  const items = await fetchItems();
-  if (items === null) { showError(container, 'Erreur de chargement. Vérifiez votre connexion.'); return; }
-
-  document.getElementById('all-count').textContent = items.filter(i => !i.coche).length;
-
-  if (items.length === 0) {
-    container.innerHTML = emptyState('La liste est vide.<br>Ajoutez des articles depuis votre onglet !');
-    return;
-  }
-  const sorted = [...items].sort((a, b) => a.coche - b.coche || a.auteur.localeCompare(b.auteur));
-  container.innerHTML = sorted.map(i => itemHTML(i, true)).join('');
-  attachListeners(container);
-}
-
-// ── HTML builders
-function itemHTML(item, showAuthor) {
-  return `
-    <div class="item${item.coche ? ' done' : ''}" data-id="${esc(String(item.id))}" data-coche="${item.coche}">
-      <div class="check-circle">
-        <svg class="check-icon" width="11" height="11" viewBox="0 0 11 11" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/>
-        </svg>
+  // ─── LEADER ROW ───────────────────────────────────────────────────────────
+  function LeaderRow({ u, rank }) {
+    const [flip, setFlip] = useState(false);
+    const prev = useRef(u.score);
+    useEffect(() => {
+      if (u.score !== prev.current) { setFlip(true); prev.current = u.score; setTimeout(() => setFlip(false), 220); }
+    }, [u.score]);
+    const r1 = rank === 1;
+    return (
+      <div className={`lb-row${r1 ? ' r1' : ''}`}>
+        <span style={{ fontSize:14, fontWeight:700, width:20, textAlign:'center', color:r1?'#b07800':'var(--text2)', flexShrink:0 }}>{rank}</span>
+        <Av prenom={u.prenom} couleur={u.couleur} size={r1?'lg':'md'} />
+        <div style={{ flex:1 }}>
+          <div style={{ fontWeight:r1?600:400, fontSize:r1?15:14 }}>{u.prenom}</div>
+        </div>
+        <div className={`lb-score${flip?' score-flip':''}`} style={{ fontSize:r1?17:15 }}>{u.score}</div>
       </div>
-      <div class="item-info">
-        <div class="item-name">${esc(item.texte)}</div>
-        ${showAuthor ? `<div class="item-author">Ajouté par <strong>${esc(item.auteur)}</strong></div>` : ''}
+    );
+  }
+
+  // ─── SCREEN B — Main ──────────────────────────────────────────────────────
+  function ScreenB({ cu, users, items, foyer, onList, onTeam, onAdded, rtOn }) {
+    const [val, setVal] = useState('');
+    const [busy, setBusy] = useState(false);
+    const inputRef = useRef(null);
+    const heroRef = useRef(null);
+
+    const col = uColor(cu);
+    const lightBg = cu ? `rgba(${hex2rgb(col)},.1)` : 'var(--bg)';
+    const unchecked = items.filter(i => !i.coche).length;
+
+    const ranked = useMemo(() =>
+      [...users].map(u => ({ ...u, score:items.filter(i => i.auteur===u.prenom && i.coche).length }))
+        .sort((a,b) => b.score - a.score),
+    [users, items]);
+
+    const add = async () => {
+      const t = val.trim(); if (!t || busy || !cu) return;
+      setBusy(true);
+      arcFly(inputRef.current, heroRef.current, t, col);
+      setVal('');
+      const { data, error } = await db.from('items').insert({ texte:t, auteur:cu.prenom, coche:false }).select().single();
+      setBusy(false);
+      if (!error && data) {
+        onAdded(data, t);
+        categorizeAndSave(data);
+      }
+      if (navigator.vibrate) navigator.vibrate(10);
+    };
+
+    return (
+      <div className="screen">
+        <div className="sb-head">
+          <div style={{ display:'flex', alignItems:'center', marginBottom:2 }}>
+            <span className="sb-foyer-label">Votre foyer</span>
+            <span className={`rt-dot${rtOn?' on':''}`} />
+          </div>
+          <div className="sb-foyer-name">{foyer}</div>
+        </div>
+
+        <div className="hero-row">
+          <div className="hero-block" ref={heroRef} onClick={onList}>
+            <div className="hero-label">Liste</div>
+            <div className="hero-count">{unchecked}</div>
+            <div className="hero-sub">article{unchecked!==1?'s':''} restant{unchecked!==1?'s':''}</div>
+          </div>
+          <div className="hero-block" onClick={onTeam}>
+            {cu ? (
+              <>
+                <div className="hero-label">Membre</div>
+                <Av prenom={cu.prenom} couleur={col} size="lg" />
+                <div style={{ fontSize:14, fontWeight:500, marginTop:6 }}>{cu.prenom}</div>
+              </>
+            ) : (
+              <>
+                <div className="hero-label" style={{ color:'#aaa' }}>Profil</div>
+                <div style={{ color:'var(--blue)', fontSize:14, marginTop:8 }}>Choisir →</div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="add-block" style={{ background:lightBg }}>
+          <div className="add-micro">Il manque quelque chose ?</div>
+          <div className="add-row">
+            <input ref={inputRef} className="add-input" placeholder="Ajouter un article…" value={val} onChange={e=>setVal(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()} maxLength={60} disabled={!cu} />
+            <button className="add-btn" style={{ background:cu?col:'#ccc' }} onClick={add} disabled={!cu||busy}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {ranked.length > 0 && (
+          <div className="lb-wrap">
+            <div className="sec" style={{ marginBottom:10, paddingLeft:4 }}>Classement</div>
+            <div className="lb-card">
+              {ranked.map((u,i) => <LeaderRow key={u.id} u={u} rank={i+1} />)}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  `;
-}
+    );
+  }
 
-function emptyState(msg) {
-  return `
-    <div class="empty">
-      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-      </svg>
-      <p>${msg}</p>
-    </div>
-  `;
-}
+  // ─── SCREEN C — Shopping list ─────────────────────────────────────────────
+  function ScreenC({ items, users, onBack, onToggle, onDelete, onDeleteBought, newItemId }) {
+    const [sort, setSort] = useState('recent');
+    const [ddOpen, setDdOpen] = useState(false);
 
-function showLoading(container) {
-  if (typeof container === 'string') container = document.getElementById(container);
-  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-}
+    const unchecked = items.filter(i => !i.coche);
+    const checked = [...items.filter(i => i.coche)].sort((a,b) => new Date(b.cree_le)-new Date(a.cree_le));
 
-function showError(container, msg) {
-  if (typeof container === 'string') container = document.getElementById(container);
-  container.innerHTML = `<div class="error-banner">${esc(msg)}</div>`;
-}
+    const renderItem = i => <ItemRow key={i.id} item={i} users={users} onToggle={onToggle} onDelete={onDelete} isNew={i.id===newItemId} />;
 
-// ── Init
-setupRealtime();
-renderHome();
-</script>
+    const renderList = () => {
+      if (sort === 'rayon') {
+        const groups = {};
+        unchecked.forEach(i => { const r = i.rayon||'Autre'; if (!groups[r]) groups[r]=[]; groups[r].push(i); });
+        return Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).map(([r, its]) => (
+          <React.Fragment key={r}>
+            <div className="sep-row">{r}</div>
+            {its.map(renderItem)}
+          </React.Fragment>
+        ));
+      }
+      return unchecked.map(renderItem);
+    };
+
+    return (
+      <div className="screen" onClick={() => ddOpen && setDdOpen(false)}>
+        <div className="sc-head">
+          <button className="back-btn" onClick={onBack}>
+            <svg width="9" height="16" viewBox="0 0 9 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="8,1 1,8 8,15"/></svg>
+            &nbsp;Retour
+          </button>
+          <span className="sc-count">{unchecked.length} item{unchecked.length!==1?'s':''}</span>
+          <div className="sort-wrap">
+            <button className="sort-btn" onClick={e=>{e.stopPropagation();setDdOpen(!ddOpen)}}>≡</button>
+            {ddOpen && (
+              <div className="sort-dd" onClick={e=>e.stopPropagation()}>
+                {[['recent','Ajouté récemment'],['rayon','Par rayon']].map(([v,l])=>(
+                  <div key={v} className={`sort-opt${sort===v?' sel':''}`} onClick={()=>{setSort(v);setDdOpen(false);}}>
+                    {l}{sort===v&&<span>✓</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="sc-items">
+          {renderList()}
+          {unchecked.length===0 && checked.length===0 && (
+            <div style={{ textAlign:'center', color:'var(--text2)', padding:'60px 0', fontSize:15 }}>La liste est vide</div>
+          )}
+          {checked.length > 0 && (
+            <>
+              <div className="bought-hdr">
+                <span className="sep-row" style={{ padding:0 }}>Produits achetés</span>
+                <button className="del-bought-btn" onClick={onDeleteBought}>Supprimer</button>
+              </div>
+              {checked.map(renderItem)}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── SWIPEABLE TEAM ROW ───────────────────────────────────────────────────
+  function SwipeableTeamRow({ u, sel, col, cpFor, setCpFor, onSelect, onColor, onDelete }) {
+    const [sx, setSx] = useState(0);
+    const tx = useRef(null), ty = useRef(null), mov = useRef(false);
+
+    const onTS = e => { tx.current = e.touches[0].clientX; ty.current = e.touches[0].clientY; mov.current = false; };
+    const onTM = e => {
+      if (tx.current === null) return;
+      const dx = e.touches[0].clientX - tx.current;
+      const dy = Math.abs(e.touches[0].clientY - ty.current);
+      if (!mov.current && Math.abs(dx) < 6 && dy < 6) return;
+      if (!mov.current && dy > Math.abs(dx)) return;
+      mov.current = true;
+      if (dx < 0) { e.preventDefault(); setSx(Math.max(dx, -100)); }
+    };
+    const onTE = () => { if (sx < -65) onDelete(u); else setSx(0); tx.current = null; };
+
+    return (
+      <div className="team-wrap">
+        <div className="team-del-bg">Supprimer</div>
+        <div
+          className="team-row"
+          style={{ transform:`translateX(${sx}px)`, transition:tx.current?'none':'transform 280ms ease-out' }}
+          onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE}
+        >
+          <div onClick={() => onSelect(u)} style={{ width:22, height:22, borderRadius:'50%', border:`2px solid ${sel?'#34c759':'var(--border)'}`, background:sel?'#34c759':'transparent', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+            {sel && <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5.5 4.5,8.5 9.5,2.5"/></svg>}
+          </div>
+          <Av prenom={u.prenom} couleur={col} size="md" />
+          <span style={{ flex:1, fontSize:15, cursor:'pointer' }} onClick={() => onSelect(u)}>{u.prenom}</span>
+          <div
+            onClick={e => { e.stopPropagation(); setCpFor(cpFor===u.id?null:u.id); }}
+            style={{ width:22, height:22, borderRadius:'50%', background:col, cursor:'pointer', border:'2px solid rgba(0,0,0,.1)', flexShrink:0 }}
+          />
+          {cpFor===u.id && (
+            <div className="color-picker" onClick={e=>e.stopPropagation()}>
+              {COLORS.map(c => (
+                <div key={c} className={`c-dot${c===col?' sel':''}`} style={{ background:c }}
+                  onClick={() => { onColor(u, c); setCpFor(null); }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── TEAM MODAL — Screen D ────────────────────────────────────────────────
+  function TeamModal({ users, cu, foyer, onClose, onSelect, onColor, onDelete, onNewUser, onUpdateFoyer }) {
+    const [cpFor, setCpFor] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [editFoyer, setEditFoyer] = useState(false);
+    const [foyerVal, setFoyerVal] = useState(foyer);
+
+    const saveFoyer = () => {
+      const v = foyerVal.trim();
+      if (!v) return;
+      setEditFoyer(false);
+      onUpdateFoyer(v);
+    };
+
+    const create = async () => {
+      const p = name.trim(); if (!p || busy) return;
+      const ex = users.find(u => u.prenom === p);
+      if (ex) { onSelect(ex); onClose(); return; }
+      setBusy(true);
+      const col = COLORS[users.length % COLORS.length];
+      const { data, error } = await db.from('utilisateurs').insert({ prenom:p, couleur:col }).select().single();
+      setBusy(false);
+      if (!error && data) { onNewUser(data); setOpen(false); setName(''); }
+    };
+
+    return (
+      <div className="modal-ov" onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
+        <div className="modal-sheet">
+          <div className="modal-hdr">
+            <div>
+              {editFoyer ? (
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                  <input
+                    autoFocus value={foyerVal}
+                    onChange={e => setFoyerVal(e.target.value)}
+                    onKeyDown={e => { if (e.key==='Enter') saveFoyer(); if (e.key==='Escape') setEditFoyer(false); }}
+                    maxLength={30}
+                    style={{ border:'none', borderBottom:'1.5px solid var(--blue)', background:'transparent', fontSize:13, color:'var(--text2)', outline:'none', width:140 }}
+                  />
+                  <button onClick={saveFoyer} style={{ fontSize:12, color:'var(--blue)', background:'none', border:'none', fontWeight:600, cursor:'pointer' }}>OK</button>
+                  <button onClick={() => setEditFoyer(false)} style={{ fontSize:12, color:'var(--text2)', background:'none', border:'none', cursor:'pointer' }}>✕</button>
+                </div>
+              ) : (
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                  <span className="modal-sub">{foyer}</span>
+                  <button onClick={() => { setFoyerVal(foyer); setEditFoyer(true); }} style={{ fontSize:11, color:'var(--blue)', textDecoration:'underline', background:'none', border:'none', cursor:'pointer', fontWeight:500 }}>modifier</button>
+                </div>
+              )}
+              <div className="modal-title">Team</div>
+            </div>
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
+
+          <div style={{ padding:'0 16px' }}>
+            {users.map(u => (
+              <SwipeableTeamRow
+                key={u.id} u={u} sel={cu?.id===u.id} col={uColor(u)}
+                cpFor={cpFor} setCpFor={setCpFor}
+                onSelect={onSelect} onColor={onColor} onDelete={onDelete}
+              />
+            ))}
+          </div>
+
+          {open ? (
+            <div className="inline-add">
+              <input className="inline-input" autoFocus placeholder="Nouveau prénom…" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&create()} maxLength={20} />
+              <button className="inline-btn" onClick={create}>{busy?'…':'OK'}</button>
+              <button className="inline-btn muted" onClick={() => { setOpen(false); setName(''); }}>✕</button>
+            </div>
+          ) : (
+            <div style={{ display:'flex', justifyContent:'center', padding:'20px 0' }}>
+              <button className="fab" onClick={() => setOpen(true)}>+</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // APP
+  // ═══════════════════════════════════════════════════════════════════════════
+  function App() {
+    const [screen, setScreen] = useState('loading');
+    const [users, setUsers] = useState([]);
+    const [items, setItems] = useState([]);
+    const [cu, setCu] = useState(null);
+    const [foyer, setFoyer] = useState('Mon foyer');
+    const [team, setTeam] = useState(false);
+    const [toast, setToast] = useState(null);
+    const [rtOn, setRtOn] = useState(false);
+    const [newId, setNewId] = useState(null);
+    const toastId = useRef(0);
+
+    // ── Init ──────────────────────────────────────────────────────────────
+    useEffect(() => {
+      (async () => {
+        const [{ data:us }, { data:it }, { data:cfg }] = await Promise.all([
+          db.from('utilisateurs').select('*').order('cree_le'),
+          db.from('items').select('*').order('cree_le', { ascending:false }),
+          db.from('config').select('valeur').eq('cle','nom_foyer').single()
+        ]);
+        if (us) setUsers(us);
+        if (it) setItems(it);
+        if (cfg) setFoyer(cfg.valeur);
+
+        // Catégorisation rétroactive des items sans rayon
+        if (it) {
+          const todo = it.filter(i => !i.rayon);
+          if (todo.length > 0) {
+            console.log(`[Rayon] ${todo.length} item(s) sans rayon — catégorisation rétroactive…`);
+            for (const item of todo) {
+              const rayon = await categorize(item.texte);
+              if (rayon) {
+                await db.from('items').update({ rayon }).eq('id', item.id);
+                setItems(prev => prev.map(i => i.id===item.id ? { ...i, rayon } : i));
+              }
+            }
+          }
+        }
+
+        const saved = (() => { try { return JSON.parse(localStorage.getItem('uzi:user')); } catch { return null; } })();
+        if (saved && us?.find(u => u.id===saved.id)) {
+          setCu(us.find(u => u.id===saved.id));
+          setScreen('B');
+        } else {
+          setScreen('A');
+        }
+      })();
+    }, []);
+
+    // ── Realtime ───────────────────────────────────────────────────────────
+    useEffect(() => {
+      const ch = db.channel('uzi')
+        .on('postgres_changes', { event:'*', schema:'public', table:'items' }, p => {
+          if (p.eventType==='INSERT') setItems(prev => [p.new, ...prev.filter(i => i.id!==p.new.id)]);
+          else if (p.eventType==='UPDATE') setItems(prev => prev.map(i => i.id===p.new.id ? p.new : i));
+          else if (p.eventType==='DELETE') setItems(prev => prev.filter(i => i.id!==p.old.id));
+        })
+        .on('postgres_changes', { event:'*', schema:'public', table:'utilisateurs' }, p => {
+          if (p.eventType==='INSERT') setUsers(prev => [...prev.filter(u=>u.id!==p.new.id), p.new].sort((a,b)=>new Date(a.cree_le)-new Date(b.cree_le)));
+          else if (p.eventType==='UPDATE') {
+            setUsers(prev => prev.map(u => u.id===p.new.id ? p.new : u));
+            setCu(prev => prev?.id===p.new.id ? p.new : prev);
+          }
+          else if (p.eventType==='DELETE') setUsers(prev => prev.filter(u => u.id!==p.old.id));
+        })
+        .subscribe(s => setRtOn(s==='SUBSCRIBED'));
+      return () => db.removeChannel(ch);
+    }, []);
+
+    // ── Toast ──────────────────────────────────────────────────────────────
+    const showToast = useCallback((message, onCancel) => {
+      const id = ++toastId.current;
+      setToast({ id, message, onCancel, onDone:() => setToast(t => t?.id===id ? null : t) });
+    }, []);
+
+    // ── Handlers ──────────────────────────────────────────────────────────
+    const login = useCallback(u => {
+      setCu(u); localStorage.setItem('uzi:user', JSON.stringify(u)); setScreen('B');
+    }, []);
+
+    const handleAdded = useCallback((item, texte) => {
+      setItems(prev => [item, ...prev.filter(i => i.id!==item.id)]);
+      setNewId(item.id);
+      setTimeout(() => setNewId(null), 400);
+      showToast(`${texte} ajouté`, async () => {
+        await db.from('items').delete().eq('id', item.id);
+        setItems(prev => prev.filter(i => i.id!==item.id));
+      });
+    }, [showToast]);
+
+    const handleToggle = useCallback(async item => {
+      const nc = !item.coche;
+      setItems(prev => prev.map(i => i.id===item.id ? { ...i, coche:nc } : i));
+      await db.from('items').update({ coche:nc }).eq('id', item.id);
+      showToast(`${item.texte} ${nc?'acheté':'remis en liste'}`, async () => {
+        setItems(prev => prev.map(i => i.id===item.id ? { ...i, coche:!nc } : i));
+        await db.from('items').update({ coche:!nc }).eq('id', item.id);
+      });
+    }, [showToast]);
+
+    const handleDelete = useCallback(async id => {
+      const item = items.find(i => i.id===id);
+      setItems(prev => prev.filter(i => i.id!==id));
+      await db.from('items').delete().eq('id', id);
+      if (item) showToast(`${item.texte} supprimé`, async () => {
+        const { data } = await db.from('items').insert({ texte:item.texte, auteur:item.auteur, coche:item.coche, rayon:item.rayon }).select().single();
+        if (data) setItems(prev => [data, ...prev]);
+      });
+    }, [items, showToast]);
+
+    const handleDeleteBought = useCallback(() => {
+      const bought = items.filter(i => i.coche);
+      setItems(prev => prev.filter(i => !i.coche));
+      bought.forEach(i => db.from('items').delete().eq('id', i.id));
+      showToast('Liste supprimée', async () => {
+        const { data } = await db.from('items').insert(bought.map(i => ({ texte:i.texte, auteur:i.auteur, coche:i.coche, rayon:i.rayon }))).select();
+        if (data) setItems(prev => [...prev, ...data]);
+      });
+    }, [items, showToast]);
+
+    const handleSelectUser = useCallback(u => {
+      setCu(u); localStorage.setItem('uzi:user', JSON.stringify(u));
+    }, []);
+
+    const handleColor = useCallback(async (u, color) => {
+      setUsers(prev => prev.map(x => x.id===u.id ? { ...x, couleur:color } : x));
+      if (cu?.id===u.id) { const nu = { ...cu, couleur:color }; setCu(nu); localStorage.setItem('uzi:user', JSON.stringify(nu)); }
+      await db.from('utilisateurs').update({ couleur:color }).eq('id', u.id);
+    }, [cu]);
+
+    const handleNewUser = useCallback(u => {
+      setUsers(prev => [...prev.filter(x => x.id!==u.id), u]);
+    }, []);
+
+    const handleUpdateFoyer = useCallback(async name => {
+      setFoyer(name);
+      await db.from('config').upsert({ cle:'nom_foyer', valeur:name }, { onConflict:'cle' });
+    }, []);
+
+    const handleDeleteUser = useCallback(async u => {
+      setUsers(prev => prev.filter(x => x.id!==u.id));
+      if (cu?.id===u.id) {
+        setCu(null);
+        localStorage.removeItem('uzi:user');
+        setTeam(false);
+        setScreen('A');
+      }
+      await db.from('utilisateurs').delete().eq('id', u.id);
+    }, [cu]);
+
+    // ── Transition styles ──────────────────────────────────────────────────
+    const scStyle = s => {
+      const base = { position:'absolute', inset:0, background:'var(--bg)' };
+      if (s==='A') return { ...base,
+        transform: screen==='A' ? 'none' : 'translateY(-4%) scale(.98)',
+        opacity: screen==='A' ? 1 : 0,
+        zIndex: screen==='A' ? 4 : 1,
+        transition:'transform 350ms ease-out, opacity 280ms ease-out' };
+      if (s==='B') {
+        const tf = screen==='A' ? 'translateY(100%)' : screen==='C' ? 'translateX(-30%)' : 'none';
+        return { ...base, transform:tf, zIndex:screen==='B'?3:screen==='C'?2:1, transition:'transform 350ms ease-out' };
+      }
+      if (s==='C') return { ...base,
+        transform: screen==='C' ? 'none' : 'translateX(100%)',
+        zIndex: screen==='C' ? 3 : 1,
+        transition:'transform 300ms ease-out' };
+      return base;
+    };
+
+    if (screen==='loading') return <div className="loading"><div className="spinner"/>Chargement…</div>;
+
+    return (
+      <div className="app">
+        <div style={scStyle('A')}><ScreenA users={users} onLogin={login} loading={false} /></div>
+        <div style={scStyle('B')}>
+          <ScreenB cu={cu} users={users} items={items} foyer={foyer} onList={() => setScreen('C')} onTeam={() => setTeam(true)} onAdded={handleAdded} rtOn={rtOn} />
+        </div>
+        <div style={scStyle('C')}>
+          <ScreenC items={items} users={users} onBack={() => setScreen('B')} onToggle={handleToggle} onDelete={handleDelete} onDeleteBought={handleDeleteBought} newItemId={newId} />
+        </div>
+        {team && (
+          <TeamModal users={users} cu={cu} foyer={foyer} onClose={() => setTeam(false)} onSelect={u => { handleSelectUser(u); setTeam(false); }} onColor={handleColor} onDelete={handleDeleteUser} onNewUser={handleNewUser} onUpdateFoyer={handleUpdateFoyer} />
+        )}
+        <Toast toast={toast} />
+      </div>
+    );
+  }
+
+  // ─── MOUNT ────────────────────────────────────────────────────────────────
+  createRoot(document.getElementById('root')).render(<App />);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+  </script>
 </body>
 </html>
