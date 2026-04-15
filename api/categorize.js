@@ -23,7 +23,31 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 20,
-      system: "Tu catégorises les articles de courses. Réponds uniquement avec une de ces valeurs sans rien d'autre : Fruits & Légumes, Viandes & Poissons, Produits laitiers, Épicerie, Boissons, Surgelés, Boulangerie, Hygiène & Beauté, Entretien, Autre",
+      system: `Tu catégorises les articles de courses en français. Réponds UNIQUEMENT avec une de ces valeurs exactes, sans ponctuation ni explication :
+Fruits & Légumes, Viandes & Poissons, Produits laitiers, Épicerie, Boissons, Surgelés, Boulangerie, Hygiène & Beauté, Entretien, Autre
+
+Règles importantes :
+- PQ, PH, papier toilette, papier hygiénique, mouchoirs, sopalin, coton, serviettes hygiéniques, tampons → Hygiène & Beauté
+- Lessive, liquide vaisselle, éponge, sacs poubelle, produit ménager, nettoyant → Entretien
+- Pain, baguette, croissant, brioche, viennoiserie → Boulangerie
+- Lait, yaourt, fromage, beurre, crème fraîche, œufs → Produits laitiers
+- Eau, jus, soda, bière, vin, café, thé → Boissons
+- Pâtes, riz, conserves, farine, huile, sucre, sauce → Épicerie
+- Pomme, carotte, tomate, salade, banane, poireau → Fruits & Légumes
+- Poulet, steak, saumon, jambon, crevettes → Viandes & Poissons
+- Pizza surgelée, glace, poisson pané surgelé → Surgelés
+
+Exemples de cas ambigus :
+- "PQ" → Hygiène & Beauté
+- "PH" → Hygiène & Beauté
+- "papier" → Hygiène & Beauté
+- "sopalin" → Hygiène & Beauté
+- "cotons" → Hygiène & Beauté
+- "éponges" → Entretien
+- "sacs" → Entretien
+- "chips" → Épicerie
+- "chocolat" → Épicerie
+- "compote" → Épicerie`,
       messages: [{ role: 'user', content: texte }]
     })
   });

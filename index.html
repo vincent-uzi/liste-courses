@@ -14,10 +14,11 @@
       --bg:#f2f2f7;--card:rgba(255,255,255,0.9);--text:#1c1c1e;--text2:#6b6b6b;
       --blue:#1a6bb5;--border:rgba(0,0,0,0.08);--r:16px;--r2:12px;
     }
-    html,body,#root{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+    html,body{width:100%;height:100%;overflow:hidden;overflow-x:hidden;background:var(--bg)}
+    #root{width:100%;height:100%;overflow:hidden}
     body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--text)}
 
-    .app{position:relative;width:100%;height:100%;max-width:430px;margin:0 auto;overflow:hidden}
+    .app{position:relative;width:100%;height:100%;max-width:430px;margin:0 auto;overflow:hidden;contain:layout style}
     .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);padding-bottom:env(safe-area-inset-bottom,0)}
 
     .sec{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600}
@@ -87,10 +88,13 @@
 
     /* Item row */
     .item-wrap{position:relative;margin-bottom:8px;border-radius:var(--r2);overflow:hidden}
-    .item-del-bg{position:absolute;inset:0;background:#ff3b30;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;border-radius:var(--r2);color:#fff;font-size:18px}
+    .item-del-bg{position:absolute;inset:0;background:#ff3b30;border-radius:var(--r2)}
+    .item-del-btn{position:absolute;right:0;top:0;bottom:0;width:80px;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
     .item-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-radius:var(--r2);border:.5px solid var(--border);position:relative;z-index:1;will-change:transform}
     @keyframes itemIn{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
     .item-new{animation:itemIn 300ms ease-out}
+    @keyframes itemOut{from{max-height:80px;opacity:1;margin-bottom:8px}to{max-height:0;opacity:0;margin-bottom:0}}
+    .item-out{animation:itemOut 280ms ease-out forwards;overflow:hidden}
 
     /* Check circle */
     .chk-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;transition:border-color .15s}
@@ -276,13 +280,26 @@
   }
 
   // ─── SWIPEABLE ITEM ROW ───────────────────────────────────────────────────
-  function ItemRow({ item, users, onToggle, onDelete, isNew }) {
+  const SNAP_W = 80;
+
+  function ItemRow({ item, users, onToggle, onDelete, isNew, isOpen, onOpen }) {
     const [sx, setSx] = useState(0);
-    const tx = useRef(null), ty = useRef(null), moving = useRef(false);
+    const [deleting, setDeleting] = useState(false);
+    const tx = useRef(null), ty = useRef(null), moving = useRef(false), startSx = useRef(0);
+    const rowRef = useRef(null);
     const user = users.find(u => u.prenom === item.auteur);
     const col = uColor(user);
 
-    const onTS = e => { tx.current = e.touches[0].clientX; ty.current = e.touches[0].clientY; moving.current = false; };
+    // Close animation when another item opens
+    useEffect(() => { if (!isOpen) setSx(0); }, [isOpen]);
+
+    const onTS = e => {
+      tx.current = e.touches[0].clientX;
+      ty.current = e.touches[0].clientY;
+      startSx.current = sx;
+      moving.current = false;
+    };
+
     const onTM = e => {
       if (tx.current === null) return;
       const dx = e.touches[0].clientX - tx.current;
@@ -290,16 +307,40 @@
       if (!moving.current && Math.abs(dx) < 6 && dy < 6) return;
       if (!moving.current && dy > Math.abs(dx)) return;
       moving.current = true;
-      if (dx < 0) { e.preventDefault(); setSx(Math.max(dx, -110)); }
+      e.preventDefault();
+      // Notify parent to close other open items
+      if (dx < 0 && !isOpen) onOpen(item.id);
+      const newSx = Math.min(0, Math.max(startSx.current + dx, -SNAP_W * 1.3));
+      setSx(newSx);
     };
-    const onTE = () => { if (sx < -70) onDelete(item.id); else setSx(0); tx.current = null; };
+
+    const onTE = () => {
+      tx.current = null;
+      moving.current = false;
+      // Snap open if revealed > 40% of button width, otherwise snap closed
+      if (sx < -(SNAP_W * 0.4)) {
+        setSx(-SNAP_W);
+        onOpen(item.id);
+      } else {
+        setSx(0);
+        onOpen(null);
+      }
+    };
+
+    const handleDelete = () => {
+      setDeleting(true);
+      setTimeout(() => onDelete(item.id), 270);
+    };
 
     return (
-      <div className="item-wrap">
+      <div className={`item-wrap${deleting ? ' item-out' : ''}`}>
         <div className="item-del-bg">
-          <svg width="18" height="20" viewBox="0 0 18 20" fill="white"><path d="M1 4h16M6 4V2h6v2M2 4l1 14a1 1 0 001 1h10a1 1 0 001-1L16 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
+          <button className="item-del-btn" onClick={handleDelete}>
+            <svg width="18" height="20" viewBox="0 0 18 20" fill="white"><path d="M1 4h16M6 4V2h6v2M2 4l1 14a1 1 0 001 1h10a1 1 0 001-1L16 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
+          </button>
         </div>
         <div
+          ref={rowRef}
           className={`item-row${isNew ? ' item-new' : ''}`}
           style={{ transform:`translateX(${sx}px)`, transition:tx.current?'none':'transform 300ms ease-out' }}
           onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE}
@@ -492,11 +533,12 @@
   function ScreenC({ items, users, onBack, onToggle, onDelete, onDeleteBought, newItemId }) {
     const [sort, setSort] = useState('recent');
     const [ddOpen, setDdOpen] = useState(false);
+    const [openItemId, setOpenItemId] = useState(null);
 
     const unchecked = items.filter(i => !i.coche);
     const checked = [...items.filter(i => i.coche)].sort((a,b) => new Date(b.cree_le)-new Date(a.cree_le));
 
-    const renderItem = i => <ItemRow key={i.id} item={i} users={users} onToggle={onToggle} onDelete={onDelete} isNew={i.id===newItemId} />;
+    const renderItem = i => <ItemRow key={i.id} item={i} users={users} onToggle={onToggle} onDelete={onDelete} isNew={i.id===newItemId} isOpen={i.id===openItemId} onOpen={setOpenItemId} />;
 
     const renderList = () => {
       if (sort === 'rayon') {
@@ -639,7 +681,7 @@
                     onChange={e => setFoyerVal(e.target.value)}
                     onKeyDown={e => { if (e.key==='Enter') saveFoyer(); if (e.key==='Escape') setEditFoyer(false); }}
                     maxLength={30}
-                    style={{ border:'none', borderBottom:'1.5px solid var(--blue)', background:'transparent', fontSize:13, color:'var(--text2)', outline:'none', width:140 }}
+                    style={{ border:'none', borderBottom:'1.5px solid var(--blue)', background:'transparent', fontSize:13, color:'var(--text2)', outline:'none', width:'100%', maxWidth:200, minWidth:0 }}
                   />
                   <button onClick={saveFoyer} style={{ fontSize:12, color:'var(--blue)', background:'none', border:'none', fontWeight:600, cursor:'pointer' }}>OK</button>
                   <button onClick={() => setEditFoyer(false)} style={{ fontSize:12, color:'var(--text2)', background:'none', border:'none', cursor:'pointer' }}>✕</button>
@@ -836,7 +878,7 @@
 
     // ── Transition styles ──────────────────────────────────────────────────
     const scStyle = s => {
-      const base = { position:'absolute', inset:0, background:'var(--bg)' };
+      const base = { position:'absolute', inset:0, background:'var(--bg)', overflow:'hidden', maxWidth:'100%' };
       if (s==='A') return { ...base,
         transform: screen==='A' ? 'none' : 'translateY(-4%) scale(.98)',
         opacity: screen==='A' ? 1 : 0,
