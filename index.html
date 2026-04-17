@@ -62,17 +62,29 @@
     .add-btn:active{transform:scale(.95)}
     .add-btn:disabled{opacity:.5}
 
-    /* Leaderboard */
-    .lb-wrap{margin:0 16px 20px}
-    .lb-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--border);overflow:hidden}
-    .lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);transition:background .12s}
-    .lb-row:last-child{border-bottom:none}
-    .lb-row:hover{background:rgba(0,0,0,.025)}
-    .lb-row.r1{background:#fdf8ee}
-    .lb-row.r1:hover{background:#fdf3e0}
-    .lb-score{font-weight:800;perspective:200px}
-    @keyframes scoreFlip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
-    .score-flip{animation:scoreFlip 200ms ease}
+    /* ══ Events section ══ */
+    .ev-wrap-outer{margin:0 16px 20px}
+    .ev-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .ev-add-btn{width:26px;height:26px;border-radius:50%;background:var(--blue);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s;flex-shrink:0}
+    .ev-add-btn:active{transform:scale(.9)}
+    .ev-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--border);overflow:hidden}
+
+    .ev-wrap{position:relative;border-bottom:.5px solid var(--border);overflow:hidden}
+    .ev-wrap:last-child{border-bottom:none}
+    .ev-del-bg{position:absolute;inset:0;background:#ff3b30}
+    .ev-del-btn{position:absolute;right:0;top:0;bottom:0;width:80px;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .ev-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:#fff;position:relative;z-index:1;will-change:transform}
+    .ev-date-col{display:flex;flex-direction:column;align-items:center;min-width:36px;flex-shrink:0}
+    .ev-day-abbr{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+    .ev-day-num{font-size:22px;font-weight:700;line-height:1;letter-spacing:-.5px}
+    .ev-day-time{font-size:11px;color:var(--text2)}
+    .ev-content{flex:1;min-width:0}
+    .ev-line1{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+    .ev-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+    .ev-ics-btn{background:none;border:none;padding:0;cursor:pointer;color:var(--blue);flex-shrink:0;display:flex;align-items:center}
+    .ev-line2{display:flex;align-items:center;gap:4px}
+    .ev-dur{font-size:12px;color:var(--text2)}
+    .ev-empty{text-align:center;color:var(--text2);font-size:14px;padding:18px 0}
 
     /* ══ SCREEN C ══ */
     .sc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;background:var(--bg);position:sticky;top:0;z-index:10;border-bottom:.5px solid var(--border)}
@@ -114,7 +126,7 @@
     .toast-msg{flex:1;font-size:14px;color:var(--text2)}
     .toast-act{font-size:14px;font-weight:600;color:var(--blue);cursor:pointer;background:none;border:none;padding:0;white-space:nowrap}
 
-    /* ══ TEAM MODAL ══ */
+    /* ══ MODALS ══ */
     .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeOv 250ms ease-out}
     @keyframes fadeOv{from{opacity:0}to{opacity:1}}
     .modal-sheet{background:var(--bg);border-radius:20px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding-bottom:24px;animation:sheetIn 250ms ease-out}
@@ -123,6 +135,8 @@
     .modal-title{font-size:20px;font-weight:700}
     .modal-sub{font-size:13px;color:var(--text2);margin-bottom:2px}
     .modal-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.08);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2)}
+
+    /* Team modal */
     .team-wrap{overflow:hidden;border-bottom:.5px solid var(--border);position:relative}
     .team-wrap:last-child{border-bottom:none}
     .team-del-bg{position:absolute;inset:0;background:#ff3b30;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff;font-size:15px;font-weight:500}
@@ -131,6 +145,26 @@
     .c-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s}
     .c-dot:active{transform:scale(.9)}
     .c-dot.sel{border-color:rgba(0,0,0,.4)}
+
+    /* Event modal fields */
+    .ev-modal-sec{font-size:13px;color:var(--text2);font-weight:500;margin-bottom:8px}
+    .ev-modal-field{background:#f2f2f7;border-radius:8px;padding:11px 14px;font-size:15px;border:none;width:100%;color:var(--text);outline:none;-webkit-appearance:none}
+    .ev-modal-field:focus{box-shadow:0 0 0 2px rgba(26,107,181,.25)}
+
+    /* Concerned row */
+    .concerned-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .concern-av{cursor:pointer;transition:opacity .15s;border-radius:50%}
+    .concern-av.sel{opacity:1;outline:2px solid #1c1c1e;outline-offset:2px}
+    .concern-av:not(.sel){opacity:.4}
+    .foyer-toggle{cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:none;padding:0;background:#f2f2f7}
+    .foyer-toggle.sel{opacity:1;background:#e0ecf8;outline:2px solid #1c1c1e;outline-offset:2px}
+    .foyer-toggle:not(.sel){opacity:.4}
+
+    /* Duration pills */
+    .dur-pills{display:flex;gap:8px;flex-wrap:wrap}
+    .dur-pill{padding:6px 10px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s,color .15s}
+    .dur-pill.sel{background:#1a6bb5;color:#fff}
+    .dur-pill:not(.sel){background:#f2f2f7;color:#6b6b6b}
 
     /* Inline add */
     .inline-add{display:flex;gap:8px;padding:10px 16px;background:var(--card);border-radius:var(--r2);border:.5px solid var(--border);margin:8px 16px}
@@ -290,7 +324,6 @@
     const user = users.find(u => u.prenom === item.auteur);
     const col = uColor(user);
 
-    // Close animation when another item opens
     useEffect(() => { if (!isOpen) setSx(0); }, [isOpen]);
 
     const onTS = e => {
@@ -308,7 +341,6 @@
       if (!moving.current && dy > Math.abs(dx)) return;
       moving.current = true;
       e.preventDefault();
-      // Notify parent to close other open items
       if (dx < 0 && !isOpen) onOpen(item.id);
       const newSx = Math.min(0, Math.max(startSx.current + dx, -SNAP_W * 1.3));
       setSx(newSx);
@@ -317,7 +349,6 @@
     const onTE = () => {
       tx.current = null;
       moving.current = false;
-      // Snap open if revealed > 40% of button width, otherwise snap closed
       if (sx < -(SNAP_W * 0.4)) {
         setSx(-SNAP_W);
         onOpen(item.id);
@@ -361,6 +392,257 @@
             {item.rayon && <div className="item-rayon">{item.rayon}</div>}
           </div>
           {user && <Av prenom={user.prenom} couleur={col} size="sm" />}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── EVENT HELPERS ────────────────────────────────────────────────────────
+  const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const DURATIONS = [
+    { label:'30 min', val:30 },
+    { label:'1 h', val:60 },
+    { label:'2 h', val:120 },
+    { label:'3 h', val:180 },
+    { label:'Journée', val:1440 },
+  ];
+
+  function formatDur(min) {
+    if (min >= 1440) return 'Journée';
+    if (min >= 60) return `${min / 60}h`;
+    return `${min} min`;
+  }
+
+  // ─── EVENT ROW ────────────────────────────────────────────────────────────
+  function EventRow({ ev, users, onDelete, isOpen, onOpen }) {
+    const [sx, setSx] = useState(0);
+    const [deleting, setDeleting] = useState(false);
+    const tx = useRef(null), ty = useRef(null), moving = useRef(false), startSx = useRef(0);
+
+    useEffect(() => { if (!isOpen) setSx(0); }, [isOpen]);
+
+    const onTS = e => {
+      tx.current = e.touches[0].clientX;
+      ty.current = e.touches[0].clientY;
+      startSx.current = sx;
+      moving.current = false;
+    };
+    const onTM = e => {
+      if (tx.current === null) return;
+      const dx = e.touches[0].clientX - tx.current;
+      const dy = Math.abs(e.touches[0].clientY - ty.current);
+      if (!moving.current && Math.abs(dx) < 6 && dy < 6) return;
+      if (!moving.current && dy > Math.abs(dx)) return;
+      moving.current = true;
+      e.preventDefault();
+      if (dx < 0 && !isOpen) onOpen(ev.id);
+      setSx(Math.min(0, Math.max(startSx.current + dx, -SNAP_W * 1.3)));
+    };
+    const onTE = () => {
+      tx.current = null;
+      moving.current = false;
+      if (sx < -(SNAP_W * 0.4)) { setSx(-SNAP_W); onOpen(ev.id); }
+      else { setSx(0); onOpen(null); }
+    };
+
+    const handleDel = () => { setDeleting(true); setTimeout(() => onDelete(ev.id), 270); };
+
+    const d = new Date(ev.date_debut);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const accent = isToday ? 'var(--blue)' : 'var(--text2)';
+    const numColor = isToday ? 'var(--blue)' : 'var(--text)';
+    const timeStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+
+    const concernedUsers = users.filter(u => Array.isArray(ev.concernes) && ev.concernes.includes(u.prenom));
+
+    const exportIcs = e => {
+      e.stopPropagation();
+      const pad = n => String(n).padStart(2, '0');
+      const fmt = dt => `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
+      const start = new Date(ev.date_debut);
+      const end = new Date(start.getTime() + ev.duree_minutes * 60000);
+      const ics = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//UziList//FR',
+        'BEGIN:VEVENT',
+        `UID:${ev.id}@uzilist`,
+        `DTSTART:${fmt(start)}`,
+        `DTEND:${fmt(end)}`,
+        `SUMMARY:${ev.titre}`,
+        'DESCRIPTION:',
+        'END:VEVENT', 'END:VCALENDAR'
+      ].join('\r\n');
+      const blob = new Blob([ics], { type:'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${ev.titre}.ics`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    return (
+      <div className={`ev-wrap${deleting ? ' item-out' : ''}`}>
+        <div className="ev-del-bg">
+          <button className="ev-del-btn" onClick={handleDel}>
+            <svg width="18" height="20" viewBox="0 0 18 20" fill="white"><path d="M1 4h16M6 4V2h6v2M2 4l1 14a1 1 0 001 1h10a1 1 0 001-1L16 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
+          </button>
+        </div>
+        <div
+          className="ev-row"
+          style={{ transform:`translateX(${sx}px)`, transition:tx.current?'none':'transform 300ms ease-out' }}
+          onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE}
+        >
+          <div className="ev-date-col">
+            <span className="ev-day-abbr" style={{ color:accent }}>{DAYS_FR[d.getDay()]}</span>
+            <span className="ev-day-num" style={{ color:numColor }}>{d.getDate()}</span>
+            <span className="ev-day-time">{timeStr}</span>
+          </div>
+          <div className="ev-content">
+            <div className="ev-line1">
+              <span className="ev-title">{ev.titre}</span>
+              <button className="ev-ics-btn" onClick={exportIcs} title="Exporter .ics">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+            </div>
+            <div className="ev-line2">
+              {concernedUsers.map(u => (
+                <div key={u.id} style={{ width:16, height:16, borderRadius:'50%', background:uColor(u), display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:7, fontWeight:700, flexShrink:0 }}>
+                  {initials(u.prenom)}
+                </div>
+              ))}
+              {ev.foyer && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                  <polyline points="9,22 9,12 15,12 15,22"/>
+                </svg>
+              )}
+              <span className="ev-dur">· {formatDur(ev.duree_minutes)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── EVENT MODAL ──────────────────────────────────────────────────────────
+  function EventModal({ users, cu, foyer, onClose, onCreated }) {
+    const [titre, setTitre] = useState('');
+    const [concernes, setConcernes] = useState([]);
+    const [foyerSel, setFoyerSel] = useState(false);
+    const [dateVal, setDateVal] = useState('');
+    const [duree, setDuree] = useState(60);
+    const [busy, setBusy] = useState(false);
+
+    const toggleConcerne = prenom => setConcernes(prev =>
+      prev.includes(prenom) ? prev.filter(p => p !== prenom) : [...prev, prenom]
+    );
+
+    const create = async () => {
+      const t = titre.trim();
+      if (!t || !dateVal || busy) return;
+      setBusy(true);
+      const { data, error } = await db.from('evenements').insert({
+        titre: t,
+        date_debut: new Date(dateVal).toISOString(),
+        duree_minutes: duree,
+        concernes,
+        foyer: foyerSel,
+        cree_par: cu?.prenom || null,
+      }).select().single();
+      setBusy(false);
+      if (!error && data) onCreated(data);
+    };
+
+    const canCreate = titre.trim() && dateVal && !busy;
+
+    return (
+      <div className="modal-ov" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+        <div className="modal-sheet">
+          <div className="modal-hdr">
+            <div>
+              <div className="modal-sub">{foyer}</div>
+              <div className="modal-title">Événement</div>
+            </div>
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
+
+          <div style={{ padding:'0 16px 8px' }}>
+            <div style={{ marginBottom:16 }}>
+              <div className="ev-modal-sec">Objet</div>
+              <input
+                autoFocus
+                className="ev-modal-field"
+                placeholder="Titre de l'événement…"
+                value={titre}
+                onChange={e => setTitre(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && create()}
+                maxLength={60}
+              />
+            </div>
+
+            <div style={{ marginBottom:16 }}>
+              <div className="ev-modal-sec">Concerné</div>
+              <div className="concerned-row">
+                {users.map(u => (
+                  <div
+                    key={u.id}
+                    className={`concern-av${concernes.includes(u.prenom) ? ' sel' : ''}`}
+                    onClick={() => toggleConcerne(u.prenom)}
+                  >
+                    <Av prenom={u.prenom} couleur={uColor(u)} size="sm" />
+                  </div>
+                ))}
+                <button
+                  className={`foyer-toggle${foyerSel ? ' sel' : ''}`}
+                  onClick={() => setFoyerSel(v => !v)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={foyerSel ? 'var(--blue)' : 'var(--text2)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9,22 9,12 15,12 15,22"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom:16 }}>
+              <div className="ev-modal-sec">Date et heure</div>
+              <input
+                type="datetime-local"
+                className="ev-modal-field"
+                value={dateVal}
+                onChange={e => setDateVal(e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom:24 }}>
+              <div className="ev-modal-sec">Durée</div>
+              <div className="dur-pills">
+                {DURATIONS.map(d => (
+                  <button key={d.val} className={`dur-pill${duree === d.val ? ' sel' : ''}`} onClick={() => setDuree(d.val)}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={create}
+              disabled={!canCreate}
+              style={{
+                width:'100%', background:'#1a6bb5', color:'#fff', border:'none',
+                borderRadius:10, padding:'12px', fontSize:16, fontWeight:600,
+                cursor: canCreate ? 'pointer' : 'default',
+                opacity: canCreate ? 1 : 0.5,
+                transition:'opacity .15s', marginBottom:8,
+              }}
+            >
+              {busy ? '…' : 'Créer'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -423,41 +705,17 @@
     );
   }
 
-  // ─── LEADER ROW ───────────────────────────────────────────────────────────
-  function LeaderRow({ u, rank }) {
-    const [flip, setFlip] = useState(false);
-    const prev = useRef(u.score);
-    useEffect(() => {
-      if (u.score !== prev.current) { setFlip(true); prev.current = u.score; setTimeout(() => setFlip(false), 220); }
-    }, [u.score]);
-    const r1 = rank === 1;
-    return (
-      <div className={`lb-row${r1 ? ' r1' : ''}`}>
-        <span style={{ fontSize:14, fontWeight:700, width:20, textAlign:'center', color:r1?'#b07800':'var(--text2)', flexShrink:0 }}>{rank}</span>
-        <Av prenom={u.prenom} couleur={u.couleur} size={r1?'lg':'md'} />
-        <div style={{ flex:1 }}>
-          <div style={{ fontWeight:r1?600:400, fontSize:r1?15:14 }}>{u.prenom}</div>
-        </div>
-        <div className={`lb-score${flip?' score-flip':''}`} style={{ fontSize:r1?17:15 }}>{u.score}</div>
-      </div>
-    );
-  }
-
   // ─── SCREEN B — Main ──────────────────────────────────────────────────────
-  function ScreenB({ cu, users, items, foyer, onList, onTeam, onAdded, rtOn }) {
+  function ScreenB({ cu, users, items, foyer, onList, onTeam, onAdded, rtOn, events, onEventDelete, onEventModal }) {
     const [val, setVal] = useState('');
     const [busy, setBusy] = useState(false);
+    const [openEvId, setOpenEvId] = useState(null);
     const inputRef = useRef(null);
     const heroRef = useRef(null);
 
     const col = uColor(cu);
     const lightBg = cu ? `rgba(${hex2rgb(col)},.1)` : 'var(--bg)';
     const unchecked = items.filter(i => !i.coche).length;
-
-    const ranked = useMemo(() =>
-      [...users].map(u => ({ ...u, score:items.filter(i => i.auteur===u.prenom && i.coche).length }))
-        .sort((a,b) => b.score - a.score),
-    [users, items]);
 
     const add = async () => {
       const t = val.trim(); if (!t || busy || !cu) return;
@@ -472,6 +730,11 @@
       }
       if (navigator.vibrate) navigator.vibrate(10);
     };
+
+    const now = new Date();
+    const upcomingEvents = events
+      .filter(ev => new Date(ev.date_debut) >= now)
+      .sort((a, b) => new Date(a.date_debut) - new Date(b.date_debut));
 
     return (
       <div className="screen">
@@ -517,14 +780,32 @@
           </div>
         </div>
 
-        {ranked.length > 0 && (
-          <div className="lb-wrap">
-            <div className="sec" style={{ marginBottom:10, paddingLeft:4 }}>Classement</div>
-            <div className="lb-card">
-              {ranked.map((u,i) => <LeaderRow key={u.id} u={u} rank={i+1} />)}
-            </div>
+        <div className="ev-wrap-outer">
+          <div className="ev-hdr">
+            <span className="sec" style={{ paddingLeft:4 }}>Prochains événements</span>
+            <button className="ev-add-btn" onClick={onEventModal}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/>
+              </svg>
+            </button>
           </div>
-        )}
+          {upcomingEvents.length === 0 ? (
+            <div className="ev-empty">Aucun événement à venir</div>
+          ) : (
+            <div className="ev-card">
+              {upcomingEvents.map(ev => (
+                <EventRow
+                  key={ev.id}
+                  ev={ev}
+                  users={users}
+                  onDelete={onEventDelete}
+                  isOpen={ev.id === openEvId}
+                  onOpen={setOpenEvId}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -730,9 +1011,11 @@
     const [screen, setScreen] = useState('loading');
     const [users, setUsers] = useState([]);
     const [items, setItems] = useState([]);
+    const [events, setEvents] = useState([]);
     const [cu, setCu] = useState(null);
     const [foyer, setFoyer] = useState('Mon foyer');
     const [team, setTeam] = useState(false);
+    const [eventModal, setEventModal] = useState(false);
     const [toast, setToast] = useState(null);
     const [rtOn, setRtOn] = useState(false);
     const [newId, setNewId] = useState(null);
@@ -741,16 +1024,17 @@
     // ── Init ──────────────────────────────────────────────────────────────
     useEffect(() => {
       (async () => {
-        const [{ data:us }, { data:it }, { data:cfg }] = await Promise.all([
+        const [{ data:us }, { data:it }, { data:cfg }, { data:evs }] = await Promise.all([
           db.from('utilisateurs').select('*').order('cree_le'),
           db.from('items').select('*').order('cree_le', { ascending:false }),
-          db.from('config').select('valeur').eq('cle','nom_foyer').single()
+          db.from('config').select('valeur').eq('cle','nom_foyer').single(),
+          db.from('evenements').select('*').order('date_debut'),
         ]);
         if (us) setUsers(us);
         if (it) setItems(it);
         if (cfg) setFoyer(cfg.valeur);
+        if (evs) setEvents(evs);
 
-        // Catégorisation rétroactive des items sans rayon
         if (it) {
           const todo = it.filter(i => !i.rayon);
           if (todo.length > 0) {
@@ -790,6 +1074,11 @@
             setCu(prev => prev?.id===p.new.id ? p.new : prev);
           }
           else if (p.eventType==='DELETE') setUsers(prev => prev.filter(u => u.id!==p.old.id));
+        })
+        .on('postgres_changes', { event:'*', schema:'public', table:'evenements' }, p => {
+          if (p.eventType==='INSERT') setEvents(prev => [...prev.filter(e=>e.id!==p.new.id), p.new].sort((a,b)=>new Date(a.date_debut)-new Date(b.date_debut)));
+          else if (p.eventType==='UPDATE') setEvents(prev => prev.map(e => e.id===p.new.id ? p.new : e));
+          else if (p.eventType==='DELETE') setEvents(prev => prev.filter(e => e.id!==p.old.id));
         })
         .subscribe(s => setRtOn(s==='SUBSCRIBED'));
       return () => db.removeChannel(ch);
@@ -876,6 +1165,25 @@
       await db.from('utilisateurs').delete().eq('id', u.id);
     }, [cu]);
 
+    const handleEventDelete = useCallback(async id => {
+      const ev = events.find(e => e.id === id);
+      setEvents(prev => prev.filter(e => e.id !== id));
+      await db.from('evenements').delete().eq('id', id);
+      if (ev) showToast(`${ev.titre} supprimé`, async () => {
+        const { data } = await db.from('evenements').insert({
+          titre: ev.titre, date_debut: ev.date_debut, duree_minutes: ev.duree_minutes,
+          concernes: ev.concernes, foyer: ev.foyer, cree_par: ev.cree_par,
+        }).select().single();
+        if (data) setEvents(prev => [...prev, data].sort((a,b) => new Date(a.date_debut)-new Date(b.date_debut)));
+      });
+    }, [events, showToast]);
+
+    const handleEventCreated = useCallback(ev => {
+      setEvents(prev => [...prev, ev].sort((a,b) => new Date(a.date_debut)-new Date(b.date_debut)));
+      setEventModal(false);
+      showToast('Événement créé !');
+    }, [showToast]);
+
     // ── Transition styles ──────────────────────────────────────────────────
     const scStyle = s => {
       const base = { position:'absolute', inset:0, background:'var(--bg)', overflow:'hidden', maxWidth:'100%' };
@@ -901,13 +1209,23 @@
       <div className="app">
         <div style={scStyle('A')}><ScreenA users={users} onLogin={login} loading={false} /></div>
         <div style={scStyle('B')}>
-          <ScreenB cu={cu} users={users} items={items} foyer={foyer} onList={() => setScreen('C')} onTeam={() => setTeam(true)} onAdded={handleAdded} rtOn={rtOn} />
+          <ScreenB
+            cu={cu} users={users} items={items} foyer={foyer}
+            onList={() => setScreen('C')} onTeam={() => setTeam(true)}
+            onAdded={handleAdded} rtOn={rtOn}
+            events={events}
+            onEventDelete={handleEventDelete}
+            onEventModal={() => setEventModal(true)}
+          />
         </div>
         <div style={scStyle('C')}>
           <ScreenC items={items} users={users} onBack={() => setScreen('B')} onToggle={handleToggle} onDelete={handleDelete} onDeleteBought={handleDeleteBought} newItemId={newId} />
         </div>
         {team && (
           <TeamModal users={users} cu={cu} foyer={foyer} onClose={() => setTeam(false)} onSelect={u => { handleSelectUser(u); setTeam(false); }} onColor={handleColor} onDelete={handleDeleteUser} onNewUser={handleNewUser} onUpdateFoyer={handleUpdateFoyer} />
+        )}
+        {eventModal && (
+          <EventModal users={users} cu={cu} foyer={foyer} onClose={() => setEventModal(false)} onCreated={handleEventCreated} />
         )}
         <Toast toast={toast} />
       </div>
