@@ -9,12 +9,12 @@
   <title>Uzi List</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;max-width:100%}
     :root{
       --bg:#f2f2f7;--card:rgba(255,255,255,0.9);--text:#1c1c1e;--text2:#6b6b6b;
       --blue:#1a6bb5;--border:rgba(0,0,0,0.08);--r:16px;--r2:12px;
     }
-    html,body{width:100%;height:100%;overflow:hidden;overflow-x:hidden;background:var(--bg)}
+    html,body{width:100%;height:100%;overflow:hidden;overflow-x:hidden;max-width:100vw;position:relative;background:var(--bg)}
     #root{width:100%;height:100%;overflow:hidden}
     body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--text)}
 
@@ -1340,7 +1340,6 @@
       const bought = items.filter(i => i.coche);
       if (!bought.length) return;
 
-      // Optimistic update
       setItems(prev => prev.filter(i => !i.coche));
 
       const { error, count } = await db
@@ -1349,17 +1348,20 @@
         .eq('coche', true);
 
       if (error) {
-        console.error('[Supprimer] Échec DELETE Supabase :', error.message, error);
-        // Rollback : remettre les items dans l'UI
+        console.error('[Supprimer] Échec DELETE :', error.message);
         setItems(prev => [...prev, ...bought]);
         return;
       }
       console.log(`[Supprimer] ${count ?? bought.length} produit(s) supprimé(s) de Supabase`);
 
-      showToast('Produits supprimés', async () => {
+      // onCancel est appelé UNIQUEMENT si l'utilisateur clique "Annuler".
+      // Le toast qui expire seul n'appelle jamais onCancel — le DELETE est définitif.
+      // Undo : coche=false pour remettre les articles dans la liste à acheter,
+      // pas en "produits achetés" (évite la réapparition au rechargement).
+      showToast('Liste supprimée', async () => {
         const { data, error: e2 } = await db
           .from('items')
-          .insert(bought.map(i => ({ texte:i.texte, auteur:i.auteur, coche:true, rayon:i.rayon })))
+          .insert(bought.map(i => ({ texte:i.texte, auteur:i.auteur, coche:false, rayon:i.rayon })))
           .select();
         if (e2) console.error('[Supprimer] Échec undo :', e2.message);
         if (data) setItems(prev => [...prev, ...data]);
