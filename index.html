@@ -353,17 +353,22 @@
     const [highlighted, setHighlighted] = useState(false);
     const tx = useRef(null), ty = useRef(null), moving = useRef(false), startSx = useRef(0);
     const rowRef = useRef(null);
+    const hlTimer = useRef(null);
     const user = users.find(u => u.prenom === item.auteur);
     const col = uColor(user);
 
     useEffect(() => { if (!isOpen) setSx(0); }, [isOpen]);
+
+    // Le timer est stocké dans un ref pour survivre au re-render
+    // quand isNew repasse à false (400 ms) — sans annuler le délai 1 s.
     useEffect(() => {
       if (isNew) {
+        clearTimeout(hlTimer.current);
         setHighlighted(true);
-        const t = setTimeout(() => setHighlighted(false), 1000);
-        return () => clearTimeout(t);
+        hlTimer.current = setTimeout(() => setHighlighted(false), 1000);
       }
     }, [isNew]);
+    useEffect(() => () => clearTimeout(hlTimer.current), []);
 
     const onTS = e => {
       tx.current = e.touches[0].clientX;
