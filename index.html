@@ -506,10 +506,13 @@
 
     const d = new Date(ev.date_debut);
     const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
+    const tz = 'Europe/Paris';
+    const dayFmt = dt => dt.toLocaleDateString('fr-FR', { timeZone: tz, day:'2-digit', month:'2-digit', year:'numeric' });
+    const isToday = dayFmt(d) === dayFmt(now);
     const accent = isToday ? 'var(--blue)' : 'var(--text2)';
     const numColor = isToday ? 'var(--blue)' : 'var(--text)';
-    const timeStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    const dParis = new Date(d.toLocaleString('en-US', { timeZone: tz }));
+    const timeStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', timeZone: tz });
 
     const concernedUsers = users.filter(u => Array.isArray(ev.concernes) && ev.concernes.includes(u.prenom));
 
@@ -549,9 +552,9 @@
           onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE}
         >
           <div className="ev-date-box">
-            <span className="ev-day-abbr" style={{ color:accent }}>{DAYS_FR[d.getDay()]}</span>
-            <span className="ev-day-num" style={{ color:numColor }}>{d.getDate()}</span>
-            <span className="ev-day-month">{MONTHS_FR[d.getMonth()]}</span>
+            <span className="ev-day-abbr" style={{ color:accent }}>{DAYS_FR[dParis.getDay()]}</span>
+            <span className="ev-day-num" style={{ color:numColor }}>{dParis.getDate()}</span>
+            <span className="ev-day-month">{MONTHS_FR[dParis.getMonth()]}</span>
           </div>
           <div className="ev-content">
             <div className="ev-line1">
@@ -732,7 +735,7 @@
       setBusy(true);
       const { data, error } = await db.from('evenements').insert({
         titre: t,
-        date_debut: new Date(`${dateDay}T${dateTime}`).toISOString(),
+        date_debut: `${dateDay}T${dateTime}:00`,
         duree_minutes: duree,
         concernes,
         foyer: foyerSel,
