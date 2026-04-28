@@ -769,24 +769,30 @@
     const update = async () => {
       const t = titre.trim();
       if (!t || !dateDay || !dateTime || busy) return;
-      console.log('[Événement] UPDATE id:', editEvent.id, { titre: t, dateDay, dateTime, duree, concernes, foyerSel });
-      setBusy(true);
       const dateDebut = buildDateDebut();
-      const { data, error } = await db.from('evenements').update({
+      const payload = {
         titre: t,
         date_debut: dateDebut,
         duree_minutes: duree,
         concernes,
         foyer: foyerSel,
-      }).eq('id', editEvent.id).select().single();
-      console.log('[Événement] résultat UPDATE:', { data, error });
+      };
+      console.log('[Edit] ID événement:', editEvent.id);
+      console.log('[Edit] Payload envoyé:', payload);
+      setBusy(true);
+      const { data, error } = await db.from('evenements')
+        .update(payload)
+        .eq('id', editEvent.id)
+        .select();
+      console.log('[Edit] data:', data);
+      console.log('[Edit] error:', error);
       setBusy(false);
       if (error) {
-        console.error('[Événement] Erreur UPDATE:', error.message);
+        console.error('[Edit] Erreur UPDATE complète:', error);
         onError?.('Erreur lors de la modification');
         return;
       }
-      onUpdated(data ?? { ...editEvent, titre: t, date_debut: dateDebut, duree_minutes: duree, concernes, foyer: foyerSel });
+      onUpdated((data && data[0]) ?? { ...editEvent, ...payload });
     };
 
     const canCreate = titre.trim() && dateDay && dateTime && !busy;
